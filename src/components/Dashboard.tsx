@@ -503,6 +503,317 @@ const Dashboard = ({
               <NotificationDropdown />
             </div>
           </div>
+
+          {/* Compact Action Buttons Row */}
+          <div className="flex items-center gap-3 mt-4">
+            <Button
+              onClick={onManageFloors}
+              className="gap-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-md"
+              size="sm"
+            >
+              <MapPin className="h-4 w-4" />
+              Interaktívne plány
+            </Button>
+
+            <Button
+              onClick={onShowAnalytics}
+              variant="outline"
+              className="gap-2 border-emerald-300 hover:bg-emerald-50 text-emerald-700"
+              size="sm"
+            >
+              <BarChart3 className="h-4 w-4" />
+              Analytika
+            </Button>
+
+            <Button
+              onClick={onShow3D}
+              variant="outline"
+              className="gap-2 border-purple-300 hover:bg-purple-50 text-purple-700"
+              size="sm"
+            >
+              <Eye className="h-4 w-4" />
+              3D Model
+            </Button>
+
+            <Dialog
+              open={showExpenseDetails}
+              onOpenChange={setShowExpenseDetails}
+            >
+              <DialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2 border-blue-300 hover:bg-blue-50 text-blue-700"
+                >
+                  <FileText className="h-4 w-4" />
+                  Detailné dáta
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <LineChart className="h-5 w-5" />
+                    Detailná analýza spotreby a predikcie
+                  </DialogTitle>
+                </DialogHeader>
+
+                <div className="space-y-6">
+                  {/* Weather Impact Analysis */}
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                      <Cloud className="h-5 w-5" />
+                      Vplyv počasia na energetickú spotrebu
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {expenseData.prediction.nextMonth.factors.map(
+                        (factor, index) => (
+                          <div
+                            key={index}
+                            className="p-4 border rounded-lg bg-gray-50"
+                          >
+                            <div className="flex justify-between items-center mb-2">
+                              <span className="font-medium">{factor.name}</span>
+                              <Badge
+                                variant={
+                                  factor.impact.startsWith("+")
+                                    ? "destructive"
+                                    : "default"
+                                }
+                              >
+                                {factor.impact}
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-gray-600">
+                              {factor.description}
+                            </p>
+                          </div>
+                        )
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Monthly Breakdown */}
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4">
+                      Rozdelenie nákladov na december
+                    </h3>
+                    <div className="space-y-3">
+                      {Object.entries(
+                        expenseData.prediction.nextMonth.breakdown
+                      ).map(([category, amount]) => {
+                        const percentage = (
+                          (amount / expenseData.prediction.nextMonth.amount) *
+                          100
+                        ).toFixed(1);
+                        return (
+                          <div
+                            key={category}
+                            className="flex items-center justify-between p-3 border rounded-lg"
+                          >
+                            <span className="font-medium capitalize">
+                              {category === "heating"
+                                ? "Kúrenie"
+                                : category === "lighting"
+                                ? "Osvetlenie"
+                                : category === "ventilation"
+                                ? "Vetranie"
+                                : "Ostatné"}
+                            </span>
+                            <div className="flex items-center gap-2">
+                              <Progress
+                                value={Number(percentage)}
+                                className="w-24 h-2"
+                              />
+                              <span className="text-sm font-bold w-16 text-right">
+                                {amount}€
+                              </span>
+                              <span className="text-xs text-gray-500 w-12">
+                                ({percentage}%)
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Weather Forecast */}
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4">
+                      Predpoveď počasia a dopad na náklady
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                      {weatherData.forecast.map((month, index) => (
+                        <div
+                          key={index}
+                          className="p-4 border rounded-lg text-center"
+                        >
+                          <div className="flex justify-center mb-2">
+                            {getWeatherIcon(month.condition)}
+                          </div>
+                          <div className="font-semibold">{month.month}</div>
+                          <div className="text-2xl font-bold text-blue-600">
+                            {month.avgTemp}°C
+                          </div>
+                          <div className="text-xs text-gray-500 mt-1 capitalize">
+                            {month.impact.replace("_", " ")}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+
+            <Dialog open={showShameTable} onOpenChange={setShowShameTable}>
+              <DialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2 border-orange-300 hover:bg-orange-50 text-orange-700"
+                >
+                  <span className="text-lg">🥔</span>
+                  Zemiak Hanby
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-6xl max-h-[80vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2 text-xl">
+                    <span className="text-2xl">🥔👑</span>
+                    {shameData.title}
+                  </DialogTitle>
+                  <p className="text-gray-600">{shameData.subtitle}</p>
+                </DialogHeader>
+
+                <div className="space-y-4">
+                  <div className="bg-gradient-to-r from-orange-50 to-red-50 p-4 rounded-lg border border-orange-200">
+                    <div className="flex items-center gap-2 text-orange-800 mb-2">
+                      <Frown className="h-5 w-5" />
+                      <span className="font-semibold">
+                        Celkové plytvanie tento mesiac:{" "}
+                        {shameData.rooms.reduce(
+                          (sum, room) => sum + room.wastedEuro,
+                          0
+                        )}
+                        €
+                      </span>
+                    </div>
+                    <p className="text-sm text-orange-700">
+                      Týchto peniazmi by sme mohli kúpiť 2,563 kg zemiakov! 🥔
+                    </p>
+                  </div>
+
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-20">Rank</TableHead>
+                        <TableHead>Miestnosť</TableHead>
+                        <TableHead>Titul Hanby</TableHead>
+                        <TableHead>Problémy</TableHead>
+                        <TableHead>Plytvanie</TableHead>
+                        <TableHead>Efektívnosť</TableHead>
+                        <TableHead>Reakcia</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {shameData.rooms.map((room) => (
+                        <TableRow
+                          key={room.rank}
+                          className={room.rank <= 3 ? "bg-red-50" : ""}
+                        >
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <span className="text-2xl">
+                                {getShameEmoji(room.rank)}
+                              </span>
+                              <span className="font-bold">#{room.rank}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="font-medium">
+                            {room.name}
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant={
+                                room.rank === 1
+                                  ? "destructive"
+                                  : room.rank <= 3
+                                  ? "default"
+                                  : "secondary"
+                              }
+                            >
+                              {room.shame}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="max-w-xs">
+                            <ul className="text-sm space-y-1">
+                              {room.issues.map((issue, i) => (
+                                <li key={i} className="flex items-start gap-1">
+                                  <span className="text-red-500 mt-0.5">•</span>
+                                  <span>{issue}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </TableCell>
+                          <TableCell>
+                            <div className="text-red-600 font-bold">
+                              -{room.wastedEuro}€
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Progress
+                                value={room.efficiency}
+                                className="w-16 h-2"
+                              />
+                              <span className="text-sm font-medium">
+                                {room.efficiency}%
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-2xl">{room.emoji}</span>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+
+                  <div className="mt-6 p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border border-green-200">
+                    <h4 className="font-semibold text-green-800 mb-2 flex items-center gap-2">
+                      <Target className="h-5 w-5" />
+                      Plán nápravy pre najhorších "hriešnikov"
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <span className="font-medium text-green-700">
+                          Okamžité opatrenia:
+                        </span>
+                        <ul className="mt-1 space-y-1 text-green-600">
+                          <li>• Automatické vypínanie osvetlenia po 22:00</li>
+                          <li>
+                            • Zníženie teploty v neobývaných miestnostiach
+                          </li>
+                          <li>• Oprava tečúcich kohútikov</li>
+                        </ul>
+                      </div>
+                      <div>
+                        <span className="font-medium text-blue-700">
+                          Dlhodobé riešenia:
+                        </span>
+                        <ul className="mt-1 space-y-1 text-blue-600">
+                          <li>• Inštalácia pohybových senzorov</li>
+                          <li>• Automatické riadenie klimatizácie</li>
+                          <li>• Školenie zamestnancov o úsporách</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
       </div>
 
@@ -603,7 +914,7 @@ const Dashboard = ({
                     <span className="text-lg opacity-90">€</span>
                   </div>
                   <p className="text-sm opacity-90 mt-1">
-                    Predikovaná spotreba na jun
+                    Predikovaná spotreba na december
                   </p>
                 </div>
                 <div className="space-y-1 text-xs">
@@ -623,290 +934,6 @@ const Dashboard = ({
               </div>
             </CardContent>
           </Card>
-        </div>
-
-        {/* Action Buttons Row */}
-        <div className="flex flex-wrap gap-4">
-          <Dialog
-            open={showExpenseDetails}
-            onOpenChange={setShowExpenseDetails}
-          >
-            <DialogTrigger asChild>
-              <Button className="gap-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-lg">
-                <FileText className="h-4 w-4" />
-                Detailné dáta o spotrebe
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                  <LineChart className="h-5 w-5" />
-                  Detailná analýza spotreby a predikcie
-                </DialogTitle>
-              </DialogHeader>
-
-              <div className="space-y-6">
-                {/* Weather Impact Analysis */}
-                <div>
-                  <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                    <Cloud className="h-5 w-5" />
-                    Vplyv počasia na energetickú spotrebu
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {expenseData.prediction.nextMonth.factors.map(
-                      (factor, index) => (
-                        <div
-                          key={index}
-                          className="p-4 border rounded-lg bg-gray-50"
-                        >
-                          <div className="flex justify-between items-center mb-2">
-                            <span className="font-medium">{factor.name}</span>
-                            <Badge
-                              variant={
-                                factor.impact.startsWith("+")
-                                  ? "destructive"
-                                  : "default"
-                              }
-                            >
-                              {factor.impact}
-                            </Badge>
-                          </div>
-                          <p className="text-sm text-gray-600">
-                            {factor.description}
-                          </p>
-                        </div>
-                      )
-                    )}
-                  </div>
-                </div>
-
-                {/* Monthly Breakdown */}
-                <div>
-                  <h3 className="text-lg font-semibold mb-4">
-                    Rozdelenie nákladov na december
-                  </h3>
-                  <div className="space-y-3">
-                    {Object.entries(
-                      expenseData.prediction.nextMonth.breakdown
-                    ).map(([category, amount]) => {
-                      const percentage = (
-                        (amount / expenseData.prediction.nextMonth.amount) *
-                        100
-                      ).toFixed(1);
-                      return (
-                        <div
-                          key={category}
-                          className="flex items-center justify-between p-3 border rounded-lg"
-                        >
-                          <span className="font-medium capitalize">
-                            {category === "heating"
-                              ? "Kúrenie"
-                              : category === "lighting"
-                              ? "Osvetlenie"
-                              : category === "ventilation"
-                              ? "Vetranie"
-                              : "Ostatné"}
-                          </span>
-                          <div className="flex items-center gap-2">
-                            <Progress
-                              value={Number(percentage)}
-                              className="w-24 h-2"
-                            />
-                            <span className="text-sm font-bold w-16 text-right">
-                              {amount}€
-                            </span>
-                            <span className="text-xs text-gray-500 w-12">
-                              ({percentage}%)
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Weather Forecast */}
-                <div>
-                  <h3 className="text-lg font-semibold mb-4">
-                    Predpoveď počasia a dopad na náklady
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {weatherData.forecast.map((month, index) => (
-                      <div
-                        key={index}
-                        className="p-4 border rounded-lg text-center"
-                      >
-                        <div className="flex justify-center mb-2">
-                          {getWeatherIcon(month.condition)}
-                        </div>
-                        <div className="font-semibold">{month.month}</div>
-                        <div className="text-2xl font-bold text-blue-600">
-                          {month.avgTemp}°C
-                        </div>
-                        <div className="text-xs text-gray-500 mt-1 capitalize">
-                          {month.impact.replace("_", " ")}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
-
-          <Dialog open={showShameTable} onOpenChange={setShowShameTable}>
-            <DialogTrigger asChild>
-              <Button
-                variant="outline"
-                className="gap-2 border-orange-300 hover:bg-orange-50 text-orange-700"
-              >
-                <span className="text-lg">🥔</span>
-                Zemiak Hanby
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-6xl max-h-[80vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2 text-xl">
-                  <span className="text-2xl">🥔👑</span>
-                  {shameData.title}
-                </DialogTitle>
-                <p className="text-gray-600">{shameData.subtitle}</p>
-              </DialogHeader>
-
-              <div className="space-y-4">
-                <div className="bg-gradient-to-r from-orange-50 to-red-50 p-4 rounded-lg border border-orange-200">
-                  <div className="flex items-center gap-2 text-orange-800 mb-2">
-                    <Frown className="h-5 w-5" />
-                    <span className="font-semibold">
-                      Celkové plytvanie tento mesiac:{" "}
-                      {shameData.rooms.reduce(
-                        (sum, room) => sum + room.wastedEuro,
-                        0
-                      )}
-                      €
-                    </span>
-                  </div>
-                  <p className="text-sm text-orange-700">
-                    Týchto peniazmi by sme mohli kúpiť 2,563 kg zemiakov! 🥔
-                  </p>
-                </div>
-
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-20">Rank</TableHead>
-                      <TableHead>Miestnosť</TableHead>
-                      <TableHead>Titul Hanby</TableHead>
-                      <TableHead>Problémy</TableHead>
-                      <TableHead>Plytvanie</TableHead>
-                      <TableHead>Efektívnosť</TableHead>
-                      <TableHead>Reakcia</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {shameData.rooms.map((room) => (
-                      <TableRow
-                        key={room.rank}
-                        className={room.rank <= 3 ? "bg-red-50" : ""}
-                      >
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <span className="text-2xl">
-                              {getShameEmoji(room.rank)}
-                            </span>
-                            <span className="font-bold">#{room.rank}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="font-medium">
-                          {room.name}
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            variant={
-                              room.rank === 1
-                                ? "destructive"
-                                : room.rank <= 3
-                                ? "default"
-                                : "secondary"
-                            }
-                          >
-                            {room.shame}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="max-w-xs">
-                          <ul className="text-sm space-y-1">
-                            {room.issues.map((issue, i) => (
-                              <li key={i} className="flex items-start gap-1">
-                                <span className="text-red-500 mt-0.5">•</span>
-                                <span>{issue}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </TableCell>
-                        <TableCell>
-                          <div className="text-red-600 font-bold">
-                            -{room.wastedEuro}€
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Progress
-                              value={room.efficiency}
-                              className="w-16 h-2"
-                            />
-                            <span className="text-sm font-medium">
-                              {room.efficiency}%
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <span className="text-2xl">{room.emoji}</span>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-
-                <div className="mt-6 p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border border-green-200">
-                  <h4 className="font-semibold text-green-800 mb-2 flex items-center gap-2">
-                    <Target className="h-5 w-5" />
-                    Plán nápravy pre najhorších "hriešnikov"
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="font-medium text-green-700">
-                        Okamžité opatrenia:
-                      </span>
-                      <ul className="mt-1 space-y-1 text-green-600">
-                        <li>• Automatické vypínanie osvetlenia po 22:00</li>
-                        <li>• Zníženie teploty v neobývaných miestnostiach</li>
-                        <li>• Oprava tečúcich kohútikov</li>
-                      </ul>
-                    </div>
-                    <div>
-                      <span className="font-medium text-blue-700">
-                        Dlhodobé riešenia:
-                      </span>
-                      <ul className="mt-1 space-y-1 text-blue-600">
-                        <li>• Inštalácia pohybových senzorov</li>
-                        <li>• Automatické riadenie klimatizácie</li>
-                        <li>• Školenie zamestnancov o úsporách</li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
-
-          <Button
-            onClick={onShowAnalytics}
-            variant="outline"
-            className="gap-2 border-emerald-300 hover:bg-emerald-50 text-emerald-700"
-          >
-            <BarChart3 className="h-4 w-4" />
-            Pokročilá analytika
-          </Button>
         </div>
 
         {/* Key Metrics with Enhanced Design */}
@@ -1079,79 +1106,6 @@ const Dashboard = ({
                       -{buildingData.energy.carbonFootprint}kg CO₂
                     </span>
                   </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Enhanced Action Buttons */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card
-            className="bg-gradient-to-br from-blue-600 to-indigo-700 text-white shadow-2xl hover:shadow-3xl transition-all duration-500 hover:scale-105 cursor-pointer"
-            onClick={onManageFloors}
-          >
-            <CardContent className="p-8">
-              <div className="flex items-center gap-4">
-                <div className="p-4 bg-white/20 rounded-2xl backdrop-blur-sm">
-                  <MapPin className="h-8 w-8" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold mb-2">Interaktívne plány</h3>
-                  <p className="text-sm opacity-90 mb-3">
-                    2D zobrazenie všetkých miestností s live dátami
-                  </p>
-                  <Badge className="bg-white/20 text-white border-white/30">
-                    Real-time monitoring
-                  </Badge>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card
-            className="bg-gradient-to-br from-emerald-600 to-teal-700 text-white shadow-2xl hover:shadow-3xl transition-all duration-500 hover:scale-105 cursor-pointer"
-            onClick={onShowAnalytics}
-          >
-            <CardContent className="p-8">
-              <div className="flex items-center gap-4">
-                <div className="p-4 bg-white/20 rounded-2xl backdrop-blur-sm">
-                  <BarChart3 className="h-8 w-8" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold mb-2">
-                    Prediktívna analytika
-                  </h3>
-                  <p className="text-sm opacity-90 mb-3">
-                    AI-powered insights a trendy optimalizácie
-                  </p>
-                  <Badge className="bg-white/20 text-white border-white/30">
-                    Machine Learning
-                  </Badge>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card
-            className="bg-gradient-to-br from-purple-600 to-pink-700 text-white shadow-2xl hover:shadow-3xl transition-all duration-500 hover:scale-105 cursor-pointer"
-            onClick={onShow3D}
-          >
-            <CardContent className="p-8">
-              <div className="flex items-center gap-4">
-                <div className="p-4 bg-white/20 rounded-2xl backdrop-blur-sm">
-                  <Eye className="h-8 w-8" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold mb-2">
-                    3D Digitálne dvojča
-                  </h3>
-                  <p className="text-sm opacity-90 mb-3">
-                    Priestorová vizualizácia s IoT senzormi
-                  </p>
-                  <Badge className="bg-white/20 text-white border-white/30">
-                    Digital Twin
-                  </Badge>
                 </div>
               </div>
             </CardContent>
