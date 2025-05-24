@@ -6,13 +6,15 @@
   "engines": {
     "node": "18.x"
   },
+
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "type-check": "tsc --noEmit",
     "lint": "eslint .",
     "preview": "vite preview"
-  },
+  }
+,
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
     "@radix-ui/react-accordion": "^1.2.0",
