@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+// src/components/FloorPlan.tsx
+import { useState, useEffect, useCallback } from "react";
 import { Floor, Room, Building } from "@/types";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "@/lib/motion";
@@ -12,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { SearchBar } from "@/components/SearchBar";
 import {
   Lightbulb,
   Thermometer,
@@ -31,6 +33,13 @@ interface FloorPlanProps {
   onRoomSelect: (room: Room) => void;
   onFloorSelect: (floor: Floor) => void;
   searchQuery?: string;
+  onSearchQueryChange?: (query: string) => void;
+}
+
+interface SearchResult {
+  room: Room;
+  floor: Floor;
+  building: Building;
 }
 
 type MetricType = "temperature" | "co2" | "humidity" | "movement";
@@ -156,6 +165,7 @@ export default function FloorPlan({
   onRoomSelect,
   onFloorSelect,
   searchQuery = "",
+  onSearchQueryChange,
 }: FloorPlanProps) {
   const [scale, setScale] = useState(0.8);
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -163,10 +173,11 @@ export default function FloorPlan({
   const [startPosition, setStartPosition] = useState({ x: 0, y: 0 });
   const [selectedMetric, setSelectedMetric] =
     useState<MetricType>("temperature");
+  const [highlightedRoom, setHighlightedRoom] = useState<string | null>(null);
+  const [internalSearchQuery, setInternalSearchQuery] = useState("");
 
   // Sort floors by level (highest first)
   const sortedFloors = [...building.floors].sort((a, b) => b.level - a.level);
-  const [highlightedRoom, setHighlightedRoom] = useState<string | null>(null);
 
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault();
@@ -216,8 +227,70 @@ export default function FloorPlan({
     setPosition({ x: 0, y: 0 });
   };
 
+  // Search functionality within the component
+  const handleInternalSearch = useCallback(
+    (query: string) => {
+      setInternalSearchQuery(query);
+      onSearchQueryChange?.(query);
+
+      if (!query.trim()) {
+        setHighlightedRoom(null);
+        return;
+      }
+
+      // Find room by query
+      const searchQuery = query.toLowerCase();
+      let foundRoom: Room | null = null;
+      let foundFloor: Floor | null = null;
+
+      for (const floorItem of building.floors) {
+        const room = floorItem.rooms.find(
+          (room) =>
+            room.name.toLowerCase().includes(searchQuery) ||
+            room.type.toLowerCase().includes(searchQuery)
+        );
+
+        if (room) {
+          foundRoom = room;
+          foundFloor = floorItem;
+          break;
+        }
+      }
+
+      if (foundRoom && foundFloor) {
+        // Switch to the correct floor if needed
+        if (!floor || floor.id !== foundFloor.id) {
+          onFloorSelect(foundFloor);
+        }
+
+        // Highlight the room
+        setHighlightedRoom(foundRoom.id);
+
+        // Select the room
+        onRoomSelect(foundRoom);
+      }
+    },
+    [building.floors, floor, onFloorSelect, onRoomSelect, onSearchQueryChange]
+  );
+
+  const handleSearchResultSelect = useCallback(
+    (result: SearchResult) => {
+      // Switch to the correct floor
+      if (!floor || floor.id !== result.floor.id) {
+        onFloorSelect(result.floor);
+      }
+
+      // Highlight and select the room
+      setHighlightedRoom(result.room.id);
+      setInternalSearchQuery(result.room.name);
+      onRoomSelect(result.room);
+      onSearchQueryChange?.(result.room.name);
+    },
+    [floor, onFloorSelect, onRoomSelect, onSearchQueryChange]
+  );
+
   // Calculate floor dimensions to fit all rooms
-  const getFloorDimensions = (floor: Floor) => {
+  const getFloorDimensions = useCallback((floor: Floor) => {
     if (!floor.rooms.length)
       return { width: floor.width, height: floor.height };
 
@@ -233,7 +306,7 @@ export default function FloorPlan({
       width: Math.max(maxX + 50, floor.width),
       height: Math.max(maxY + 50, floor.height),
     };
-  };
+  }, []);
 
   useEffect(() => {
     if (floor) {
@@ -247,7 +320,24 @@ export default function FloorPlan({
         });
       }
     }
-  }, [floor, scale]);
+  }, [floor, scale, getFloorDimensions]);
+
+  // Auto-remove highlight after 3 seconds
+  useEffect(() => {
+    if (highlightedRoom) {
+      const timer = setTimeout(() => {
+        setHighlightedRoom(null);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [highlightedRoom]);
+
+  // Sync with external search query
+  useEffect(() => {
+    if (searchQuery !== internalSearchQuery) {
+      setInternalSearchQuery(searchQuery);
+    }
+  }, [searchQuery, internalSearchQuery]);
 
   // Function to generate mock data for rooms
   const getRoomData = (room: Room, metric: MetricType) => {
@@ -493,27 +583,16 @@ export default function FloorPlan({
     );
   };
 
-  // Check if room matches search query
+  // Check if room matches search query or is highlighted
   const isRoomHighlighted = (room: Room) => {
     if (highlightedRoom === room.id) return true;
-    if (!searchQuery.trim()) return false;
-    const query = searchQuery.toLowerCase();
+    if (!internalSearchQuery.trim()) return false;
+    const query = internalSearchQuery.toLowerCase();
     return (
       room.name.toLowerCase().includes(query) ||
       room.type.toLowerCase().includes(query)
     );
   };
-
-  useEffect(() => {
-    if (searchQuery.trim() && selectedRoom) {
-      setHighlightedRoom(selectedRoom.id);
-      // Auto-remove highlight after 3 seconds
-      const timer = setTimeout(() => {
-        setHighlightedRoom(null);
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [searchQuery, selectedRoom]);
 
   if (!floor) {
     return (
@@ -625,14 +704,28 @@ export default function FloorPlan({
           </defs>
         </svg>
 
-        {/* Left Sidebar - Controls */}
-        <Card className="absolute top-4 left-4 z-10 w-64 bg-background/95 backdrop-blur-sm shadow-lg">
+        {/* Left Sidebar - Controls with Search Bar */}
+        <Card className="absolute top-4 left-4 z-10 w-80 bg-background/95 backdrop-blur-sm shadow-lg">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium">
               Ovládanie plánu
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* Search Bar */}
+            <div className="space-y-2">
+              <label className="text-xs font-medium text-muted-foreground">
+                Vyhľadať miestnosť
+              </label>
+              <SearchBar
+                building={building}
+                onSearch={handleInternalSearch}
+                onResultSelect={handleSearchResultSelect}
+                placeholder="Hľadať miestnosti..."
+                className="w-full"
+              />
+            </div>
+
             {/* Floor Selection */}
             <div className="space-y-2">
               <label className="text-xs font-medium text-muted-foreground">
@@ -823,7 +916,7 @@ export default function FloorPlan({
 
                   return (
                     <g key={room.id} className="room-group">
-                      {/* Room floor with metric-based color */}
+                      {/* Room floor with metric{/* Room floor with metric-based color */}
                       <rect
                         x={room.x + wallThickness / 2}
                         y={room.y + wallThickness / 2}

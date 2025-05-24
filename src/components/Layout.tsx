@@ -1,4 +1,3 @@
-import { ModeToggle } from "@/components/ModeToggle";
 import { Building } from "lucide-react";
 
 interface LayoutProps {
@@ -14,9 +13,6 @@ export default function Layout({ children }: LayoutProps) {
           <h1 className="text-xl font-semibold tracking-tight">
             Not a Candy Shop
           </h1>
-        </div>
-        <div className="flex items-center gap-4">
-          <ModeToggle />
         </div>
       </header>
       <main className="flex-1 flex overflow-hidden">{children}</main>

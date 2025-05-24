@@ -1,4 +1,4 @@
-// src/App.tsx (updated sections)
+// src/App.tsx
 import { useState } from "react";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import Layout from "@/components/Layout";
@@ -6,7 +6,6 @@ import Dashboard from "@/components/Dashboard";
 import FloorPlan from "@/components/FloorPlan";
 import RoomDetails from "@/components/RoomDetails";
 import Analytics from "@/components/Analytics";
-import { SearchBar } from "@/components/SearchBar";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
@@ -17,12 +16,6 @@ import { ArrowLeft } from "lucide-react";
 import { RoomSettingsDialog } from "@/components/RoomSettingsDialog";
 
 type View = "dashboard" | "floors" | "analytics";
-
-interface SearchResult {
-  room: Room;
-  floor: Floor;
-  building: Building;
-}
 
 function App() {
   const { building, searchRooms, updateRoom } = useBuildingData();
@@ -43,38 +36,8 @@ function App() {
     setShowSettings(true);
   };
 
-  const handleSearch = (query: string) => {
+  const handleSearchQueryChange = (query: string) => {
     setSearchQuery(query);
-
-    if (query.trim() === "") {
-      return;
-    }
-
-    const results = searchRooms(query);
-    if (results.room) {
-      setSelectedFloor(results.floor);
-      setSelectedRoom(results.room);
-      setCurrentView("floors");
-    } else {
-      toast({
-        title: "Miestnosť nenájdená",
-        description: "Skúste iný vyhľadávací termín.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  // New handler for enhanced search results
-  const handleSearchResultSelect = (result: SearchResult) => {
-    setSelectedFloor(result.floor);
-    setSelectedRoom(result.room);
-    setCurrentView("floors");
-    setSearchQuery(result.room.name);
-
-    toast({
-      title: "Miestnosť nájdená",
-      description: `${result.room.name} na ${result.floor.name}`,
-    });
   };
 
   const handleCloseRoomDetails = () => {
@@ -115,13 +78,6 @@ function App() {
                   <ArrowLeft className="h-4 w-4" />
                   Späť na nástenku
                 </Button>
-                <div className="flex-1 max-w-2xl">
-                  <SearchBar
-                    building={building}
-                    onSearch={handleSearch}
-                    onResultSelect={handleSearchResultSelect}
-                  />
-                </div>
                 {selectedFloor && (
                   <div className="hidden md:flex items-center gap-2 text-sm text-muted-foreground">
                     <span>Aktuálne:</span>
@@ -144,6 +100,7 @@ function App() {
                 onRoomSelect={handleRoomSelect}
                 onFloorSelect={handleFloorSelect}
                 searchQuery={searchQuery}
+                onSearchQueryChange={handleSearchQueryChange}
               />
               {selectedRoom && (
                 <RoomDetails
