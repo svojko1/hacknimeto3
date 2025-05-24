@@ -39,12 +39,38 @@ import {
   Waves,
   Target,
   Database,
+  CloudRain,
+  Snowflake,
+  CloudSun,
+  FileText,
+  Frown,
+  TrendingDown as TrendingDownIcon,
+  Calculator,
+  PiggyBank,
+  LineChart,
+  Calendar as CalendarIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
 interface DashboardProps {
@@ -59,8 +85,175 @@ const Dashboard = ({
   onShow3D,
 }: DashboardProps) => {
   const [selectedPeriod, setSelectedPeriod] = useState("today");
+  const [showExpenseDetails, setShowExpenseDetails] = useState(false);
+  const [showShameTable, setShowShameTable] = useState(false);
 
-  // Enhanced real-time building data based on hackathon requirements
+  // Enhanced expense data with weather predictions
+  const expenseData = {
+    today: {
+      current: 89.3,
+      currency: "€",
+      description: "Aktuálna spotreba za dnes",
+      breakdown: {
+        heating: 45.2,
+        lighting: 18.7,
+        ventilation: 15.4,
+        other: 10.0,
+      },
+    },
+    savings: {
+      theoretical: 24.7,
+      percentage: 21.6,
+      comparedTo: "starý model",
+      description: "Teoretické úšetrenie oproti minulému modelu",
+    },
+    prediction: {
+      nextMonth: {
+        amount: 2847,
+        confidence: 94,
+        weather: "chladnejšie počasie",
+        factors: [
+          {
+            name: "Teplota",
+            impact: "+15%",
+            description: "Očakávaný pokles o 3-5°C",
+          },
+          {
+            name: "Vlhkosť",
+            impact: "+8%",
+            description: "Zvýšená vlhkosť 65-75%",
+          },
+          {
+            name: "Slnečné dni",
+            impact: "-12%",
+            description: "Menej slnečných hodín",
+          },
+          {
+            name: "Vietor",
+            impact: "+5%",
+            description: "Zvýšená rýchlosť vetra",
+          },
+        ],
+        breakdown: {
+          heating: 1620, // 57%
+          lighting: 682, // 24%
+          ventilation: 398, // 14%
+          other: 147, // 5%
+        },
+      },
+    },
+  };
+
+  // Shame table data - worst performing rooms
+  const shameData = {
+    title: "🥔 Zemiak Hanby - Najhoršie miestnosti mesiaca",
+    subtitle: "Miestnosti, ktoré by mali ísť na tréning efektívnosti",
+    rooms: [
+      {
+        rank: 1,
+        name: "Veľká zasadacia miestnosť",
+        shame: "Kráľ plytvania",
+        issues: [
+          "Prekročenie teploty o 4.3°C",
+          "Zbytočné osvetlenie 18h/deň",
+          "Okná otvorené pri kúrení",
+        ],
+        wastedEuro: 347,
+        efficiency: 23,
+        emoji: "😱",
+      },
+      {
+        rank: 2,
+        name: "Kancelária IT oddelenia",
+        shame: "Energetický vírus",
+        issues: [
+          "Počítače 24/7",
+          "Klimatizácia v zime na 16°C",
+          "Nevypnuté monitory",
+        ],
+        wastedEuro: 284,
+        efficiency: 31,
+        emoji: "🔥",
+      },
+      {
+        rank: 3,
+        name: "Kuchyňa zamestnancov",
+        shame: "Tepelná bomba",
+        issues: [
+          "Lednice otvorené 45% času",
+          "Mikrovlnka bežiaca nadarmo",
+          "Rúra na 250°C celý deň",
+        ],
+        wastedEuro: 256,
+        efficiency: 38,
+        emoji: "🌋",
+      },
+      {
+        rank: 4,
+        name: "Archív dokumentov",
+        shame: "Tichý žrút",
+        issues: [
+          "Osvetlenie celú noc",
+          "Odvlhčovače na maximum",
+          "Nikto tam nechodí",
+        ],
+        wastedEuro: 198,
+        efficiency: 42,
+        emoji: "👻",
+      },
+      {
+        rank: 5,
+        name: "Toalety 2. poschodie",
+        shame: "Vodný vampír",
+        issues: [
+          "Tečúce kohútiky",
+          "Ventilátor bežiaci 24/7",
+          "Kúrenie na 28°C",
+        ],
+        wastedEuro: 167,
+        efficiency: 45,
+        emoji: "🧛‍♂️",
+      },
+    ],
+  };
+
+  // Weather data for predictions
+  const weatherData = {
+    current: {
+      temperature: 8,
+      condition: "cloudy",
+      humidity: 68,
+      wind: 12,
+    },
+    forecast: [
+      {
+        month: "December",
+        avgTemp: 2,
+        condition: "snow",
+        impact: "high_heating",
+      },
+      {
+        month: "Január",
+        avgTemp: -1,
+        condition: "snow",
+        impact: "very_high_heating",
+      },
+      {
+        month: "Február",
+        avgTemp: 3,
+        condition: "rain",
+        impact: "high_heating",
+      },
+      {
+        month: "Marec",
+        avgTemp: 8,
+        condition: "cloudy",
+        impact: "medium_heating",
+      },
+    ],
+  };
+
+  // Enhanced real-time building data
   const buildingData = {
     buildingInfo: {
       name: "Mestský úrad Bratislava-Ružinov",
@@ -76,7 +269,7 @@ const Dashboard = ({
       range: { min: 19.2, max: 24.8 },
       trend: -0.3,
       rooms: { optimal: 12, warning: 4, critical: 1 },
-      energySaving: 15.2, // % energy saved by optimization
+      energySaving: 15.2,
     },
     occupancy: {
       current: 127,
@@ -119,7 +312,7 @@ const Dashboard = ({
       efficiency: 91.2,
       cost: 89.3,
       monthlyBudget: 2450,
-      carbonFootprint: 156, // kg CO2
+      carbonFootprint: 156,
     },
     iot: {
       sensors: 28,
@@ -137,7 +330,35 @@ const Dashboard = ({
     },
   };
 
-  // Critical alerts and warnings based on municipal building needs
+  const getWeatherIcon = (condition: string) => {
+    switch (condition) {
+      case "sunny":
+        return <Sun className="h-4 w-4 text-yellow-500" />;
+      case "cloudy":
+        return <Cloud className="h-4 w-4 text-gray-500" />;
+      case "rain":
+        return <CloudRain className="h-4 w-4 text-blue-500" />;
+      case "snow":
+        return <Snowflake className="h-4 w-4 text-blue-300" />;
+      default:
+        return <CloudSun className="h-4 w-4 text-gray-400" />;
+    }
+  };
+
+  const getShameEmoji = (rank: number) => {
+    switch (rank) {
+      case 1:
+        return "🥔👑";
+      case 2:
+        return "🥔🔥";
+      case 3:
+        return "🥔😅";
+      default:
+        return "🥔";
+    }
+  };
+
+  // Critical alerts
   const criticalAlerts = [
     {
       id: 1,
@@ -152,17 +373,6 @@ const Dashboard = ({
     },
     {
       id: 2,
-      type: "maintenance",
-      title: "Plánovaná údržba HVAC systému",
-      description:
-        "Systém klimatizácie potrebuje údržbu do 7 dní pre optimálnu energetickú účinnosť.",
-      severity: "medium",
-      icon: <Settings2 className="h-4 w-4" />,
-      time: "pred 1 hod",
-      action: "Naplánovať",
-    },
-    {
-      id: 3,
       type: "energy",
       title: "Energetická optimalizácia úspešná",
       description: "Automatické riadenie ušetrilo 17.4% energie oproti plánu.",
@@ -171,20 +381,9 @@ const Dashboard = ({
       time: "pred 2 hod",
       action: "Detail",
     },
-    {
-      id: 4,
-      type: "error",
-      title: "Problém s vodovodným systémom",
-      description:
-        "Detekovaná neštandardná spotreba vody v zasadacej miestnosti.",
-      severity: "high",
-      icon: <Waves className="h-4 w-4" />,
-      time: "pred 8 min",
-      action: "Riešiť okamžite",
-    },
   ];
 
-  // Enhanced key areas based on municipal building layout
+  // Key areas
   const keyAreas = [
     {
       id: "entrance",
@@ -214,44 +413,7 @@ const Dashboard = ({
       lastUpdate: "45s",
       energyUsage: 6.8,
     },
-    {
-      id: "meeting",
-      name: "Veľká zasadacia miestnosť",
-      description: "Svadby, privítania, stretnutia s občanmi",
-      icon: <Building className="h-5 w-5" />,
-      temperature: 24.3,
-      occupancy: buildingData.occupancy.areas.meetingRoom,
-      airQuality: 390,
-      status: "warning",
-      alerts: ["Teplota nad optimálnym rozsahom", "Vysoká spotreba vody"],
-      services: ["Ceremónie", "Stretnutia", "Podujatia"],
-      lastUpdate: "1m",
-      energyUsage: 8.1,
-    },
-    {
-      id: "offices",
-      name: "Administratívne kancelárie",
-      description: "Pracovné priestory zamestnancov úradu",
-      icon: <Building className="h-5 w-5" />,
-      temperature: 21.6,
-      occupancy: buildingData.occupancy.areas.offices,
-      airQuality: 440,
-      status: "critical",
-      alerts: ["Prekročená kapacita o 12%"],
-      services: ["Správa", "IT podpora", "Personalistika"],
-      lastUpdate: "15s",
-      energyUsage: 12.3,
-    },
   ];
-
-  // Digital twin innovation metrics
-  const digitalTwinMetrics = {
-    realTimeData: "26 aktívnych senzorov",
-    predictiveAnalytics: "94% presnosť predpovedí",
-    energyOptimization: "17.4% úspora energie",
-    aiRecommendations: "8 aktívnych odporúčaní",
-    automationLevel: "78% procesov automatizovaných",
-  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -282,13 +444,6 @@ const Dashboard = ({
             Upozornenie
           </Badge>
         );
-      case "critical":
-        return (
-          <Badge className="bg-red-100 text-red-800 border-red-200 shadow-sm">
-            <AlertTriangle className="h-3 w-3 mr-1" />
-            Kritické
-          </Badge>
-        );
       default:
         return (
           <Badge variant="secondary">
@@ -299,26 +454,12 @@ const Dashboard = ({
     }
   };
 
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
-      case "low":
-        return "text-emerald-600 bg-emerald-50 border-emerald-200";
-      case "medium":
-        return "text-amber-600 bg-amber-50 border-amber-200";
-      case "high":
-        return "text-red-600 bg-red-50 border-red-200";
-      default:
-        return "text-blue-600 bg-blue-50 border-blue-200";
-    }
-  };
-
   return (
     <div className="w-full h-full bg-gradient-to-br from-slate-50 via-blue-50/40 to-indigo-50/30 overflow-auto">
-      {/* Enhanced Header with Municipal Branding */}
+      {/* Enhanced Header */}
       <div className="sticky top-0 z-10 bg-white/90 backdrop-blur-xl border-b border-gray-200/60 shadow-lg">
         <div className="px-8 py-6">
           <div className="flex items-center justify-between">
-            {/* Left side - Enhanced Municipal Identity */}
             <div className="flex items-center gap-6">
               <div className="flex items-center gap-4">
                 <div className="relative">
@@ -347,31 +488,8 @@ const Dashboard = ({
                   </p>
                 </div>
               </div>
-
-              {/* Enhanced System Status */}
-              <div className="hidden lg:flex items-center gap-6 pl-6 border-l border-gray-200">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse" />
-                    <span className="text-sm font-medium text-gray-700">
-                      Digitálne dvojča aktívne
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-4 text-xs text-gray-500">
-                    <div className="flex items-center gap-1">
-                      <Database className="h-3 w-3" />
-                      <span>{buildingData.iot.dataPoints} dátových bodov</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <FlaskConical className="h-3 w-3" />
-                      <span>{buildingData.iot.sensors} IoT senzorov</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
             </div>
 
-            {/* Right side - Enhanced Controls */}
             <div className="flex items-center gap-4">
               <div className="hidden md:flex items-center gap-3 px-4 py-2 bg-gray-50/50 rounded-lg border">
                 <Clock className="h-4 w-4 text-gray-500" />
@@ -392,46 +510,415 @@ const Dashboard = ({
                   {criticalAlerts.filter((a) => a.severity === "high").length}
                 </Badge>
               </Button>
-
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-2 border-gray-300 hover:bg-indigo-50"
-              >
-                <ExternalLink className="h-4 w-4" />
-                <span className="hidden sm:inline">Exportovať</span>
-              </Button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Critical Alerts Section */}
-      {criticalAlerts.filter((alert) => alert.severity === "high").length >
-        0 && (
-        <div className="px-8 py-4 bg-gradient-to-r from-red-50 to-orange-50 border-b border-red-100">
-          <div className="flex items-center gap-4">
-            <AlertTriangle className="h-5 w-5 text-red-600" />
-            <div className="flex-1">
-              <h3 className="font-semibold text-red-900 text-sm">
-                Kritické upozornenia vyžadujú pozornosť
-              </h3>
-              <p className="text-xs text-red-700">
-                {criticalAlerts.filter((a) => a.severity === "high").length}{" "}
-                vysoké priority alerts
-              </p>
-            </div>
-            <Button variant="destructive" size="sm" className="gap-2">
-              <Eye className="h-4 w-4" />
-              Zobraziť všetky
-            </Button>
-          </div>
-        </div>
-      )}
-
       {/* Main Content */}
       <div className="px-8 py-6 space-y-8">
-        {/* Enhanced Key Metrics with Innovation Focus */}
+        {/* Enhanced Expense Management Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Today's Expense */}
+          <Card className="bg-gradient-to-br from-blue-600 to-indigo-700 text-white shadow-2xl hover:shadow-3xl transition-all duration-500">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
+                  <Calculator className="h-6 w-6" />
+                </div>
+                <Badge className="bg-white/20 text-white border-white/30">
+                  Dnes
+                </Badge>
+              </div>
+              <div className="space-y-3">
+                <div>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-3xl font-bold">
+                      {expenseData.today.current}
+                    </span>
+                    <span className="text-lg opacity-90">
+                      {expenseData.today.currency}
+                    </span>
+                  </div>
+                  <p className="text-sm opacity-90 mt-1">
+                    {expenseData.today.description}
+                  </p>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="bg-white/10 p-2 rounded">
+                    <div className="font-medium">Kúrenie</div>
+                    <div>{expenseData.today.breakdown.heating}€</div>
+                  </div>
+                  <div className="bg-white/10 p-2 rounded">
+                    <div className="font-medium">Osvetlenie</div>
+                    <div>{expenseData.today.breakdown.lighting}€</div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Theoretical Savings */}
+          <Card className="bg-gradient-to-br from-emerald-600 to-teal-700 text-white shadow-2xl hover:shadow-3xl transition-all duration-500">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
+                  <PiggyBank className="h-6 w-6" />
+                </div>
+                <Badge className="bg-white/20 text-white border-white/30">
+                  Úspora
+                </Badge>
+              </div>
+              <div className="space-y-3">
+                <div>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-3xl font-bold">
+                      {expenseData.savings.theoretical}
+                    </span>
+                    <span className="text-lg opacity-90">€</span>
+                  </div>
+                  <p className="text-sm opacity-90 mt-1">
+                    {expenseData.savings.description}
+                  </p>
+                </div>
+                <div className="bg-white/10 p-2 rounded">
+                  <div className="text-xs opacity-80">Percentuálna úspora</div>
+                  <div className="text-lg font-bold">
+                    {expenseData.savings.percentage}%
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Weather-based Prediction */}
+          <Card className="bg-gradient-to-br from-purple-600 to-pink-700 text-white shadow-2xl hover:shadow-3xl transition-all duration-500">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
+                  <TrendingUp className="h-6 w-6" />
+                </div>
+                <div className="flex items-center gap-1 text-xs bg-white/20 px-2 py-1 rounded">
+                  {getWeatherIcon("cloudy")}
+                  <span>Predikcia</span>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <div>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-3xl font-bold">
+                      {expenseData.prediction.nextMonth.amount}
+                    </span>
+                    <span className="text-lg opacity-90">€</span>
+                  </div>
+                  <p className="text-sm opacity-90 mt-1">
+                    Predikovaná spotreba na december
+                  </p>
+                </div>
+                <div className="space-y-1 text-xs">
+                  <div className="flex justify-between">
+                    <span>Presnosť predikcie:</span>
+                    <span className="font-bold">
+                      {expenseData.prediction.nextMonth.confidence}%
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Snowflake className="h-3 w-3" />
+                    <span className="opacity-80">
+                      {expenseData.prediction.nextMonth.weather}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Action Buttons Row */}
+        <div className="flex flex-wrap gap-4">
+          <Dialog
+            open={showExpenseDetails}
+            onOpenChange={setShowExpenseDetails}
+          >
+            <DialogTrigger asChild>
+              <Button className="gap-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-lg">
+                <FileText className="h-4 w-4" />
+                Detailné dáta o spotrebe
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <LineChart className="h-5 w-5" />
+                  Detailná analýza spotreby a predikcie
+                </DialogTitle>
+              </DialogHeader>
+
+              <div className="space-y-6">
+                {/* Weather Impact Analysis */}
+                <div>
+                  <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                    <Cloud className="h-5 w-5" />
+                    Vplyv počasia na energetickú spotrebu
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {expenseData.prediction.nextMonth.factors.map(
+                      (factor, index) => (
+                        <div
+                          key={index}
+                          className="p-4 border rounded-lg bg-gray-50"
+                        >
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="font-medium">{factor.name}</span>
+                            <Badge
+                              variant={
+                                factor.impact.startsWith("+")
+                                  ? "destructive"
+                                  : "default"
+                              }
+                            >
+                              {factor.impact}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-gray-600">
+                            {factor.description}
+                          </p>
+                        </div>
+                      )
+                    )}
+                  </div>
+                </div>
+
+                {/* Monthly Breakdown */}
+                <div>
+                  <h3 className="text-lg font-semibold mb-4">
+                    Rozdelenie nákladov na december
+                  </h3>
+                  <div className="space-y-3">
+                    {Object.entries(
+                      expenseData.prediction.nextMonth.breakdown
+                    ).map(([category, amount]) => {
+                      const percentage = (
+                        (amount / expenseData.prediction.nextMonth.amount) *
+                        100
+                      ).toFixed(1);
+                      return (
+                        <div
+                          key={category}
+                          className="flex items-center justify-between p-3 border rounded-lg"
+                        >
+                          <span className="font-medium capitalize">
+                            {category === "heating"
+                              ? "Kúrenie"
+                              : category === "lighting"
+                              ? "Osvetlenie"
+                              : category === "ventilation"
+                              ? "Vetranie"
+                              : "Ostatné"}
+                          </span>
+                          <div className="flex items-center gap-2">
+                            <Progress
+                              value={Number(percentage)}
+                              className="w-24 h-2"
+                            />
+                            <span className="text-sm font-bold w-16 text-right">
+                              {amount}€
+                            </span>
+                            <span className="text-xs text-gray-500 w-12">
+                              ({percentage}%)
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Weather Forecast */}
+                <div>
+                  <h3 className="text-lg font-semibold mb-4">
+                    Predpoveď počasia a dopad na náklady
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {weatherData.forecast.map((month, index) => (
+                      <div
+                        key={index}
+                        className="p-4 border rounded-lg text-center"
+                      >
+                        <div className="flex justify-center mb-2">
+                          {getWeatherIcon(month.condition)}
+                        </div>
+                        <div className="font-semibold">{month.month}</div>
+                        <div className="text-2xl font-bold text-blue-600">
+                          {month.avgTemp}°C
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1 capitalize">
+                          {month.impact.replace("_", " ")}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          <Dialog open={showShameTable} onOpenChange={setShowShameTable}>
+            <DialogTrigger asChild>
+              <Button
+                variant="outline"
+                className="gap-2 border-orange-300 hover:bg-orange-50 text-orange-700"
+              >
+                <span className="text-lg">🥔</span>
+                Zemiak Hanby
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-6xl max-h-[80vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2 text-xl">
+                  <span className="text-2xl">🥔👑</span>
+                  {shameData.title}
+                </DialogTitle>
+                <p className="text-gray-600">{shameData.subtitle}</p>
+              </DialogHeader>
+
+              <div className="space-y-4">
+                <div className="bg-gradient-to-r from-orange-50 to-red-50 p-4 rounded-lg border border-orange-200">
+                  <div className="flex items-center gap-2 text-orange-800 mb-2">
+                    <Frown className="h-5 w-5" />
+                    <span className="font-semibold">
+                      Celkové plytvanie tento mesiac:{" "}
+                      {shameData.rooms.reduce(
+                        (sum, room) => sum + room.wastedEuro,
+                        0
+                      )}
+                      €
+                    </span>
+                  </div>
+                  <p className="text-sm text-orange-700">
+                    Týchto peniazmi by sme mohli kúpiť 2,563 kg zemiakov! 🥔
+                  </p>
+                </div>
+
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-20">Rank</TableHead>
+                      <TableHead>Miestnosť</TableHead>
+                      <TableHead>Titul Hanby</TableHead>
+                      <TableHead>Problémy</TableHead>
+                      <TableHead>Plytvanie</TableHead>
+                      <TableHead>Efektívnosť</TableHead>
+                      <TableHead>Reakcia</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {shameData.rooms.map((room) => (
+                      <TableRow
+                        key={room.rank}
+                        className={room.rank <= 3 ? "bg-red-50" : ""}
+                      >
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <span className="text-2xl">
+                              {getShameEmoji(room.rank)}
+                            </span>
+                            <span className="font-bold">#{room.rank}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="font-medium">
+                          {room.name}
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={
+                              room.rank === 1
+                                ? "destructive"
+                                : room.rank <= 3
+                                ? "default"
+                                : "secondary"
+                            }
+                          >
+                            {room.shame}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="max-w-xs">
+                          <ul className="text-sm space-y-1">
+                            {room.issues.map((issue, i) => (
+                              <li key={i} className="flex items-start gap-1">
+                                <span className="text-red-500 mt-0.5">•</span>
+                                <span>{issue}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-red-600 font-bold">
+                            -{room.wastedEuro}€
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Progress
+                              value={room.efficiency}
+                              className="w-16 h-2"
+                            />
+                            <span className="text-sm font-medium">
+                              {room.efficiency}%
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-2xl">{room.emoji}</span>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+
+                <div className="mt-6 p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border border-green-200">
+                  <h4 className="font-semibold text-green-800 mb-2 flex items-center gap-2">
+                    <Target className="h-5 w-5" />
+                    Plán nápravy pre najhorších "hriešnikov"
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="font-medium text-green-700">
+                        Okamžité opatrenia:
+                      </span>
+                      <ul className="mt-1 space-y-1 text-green-600">
+                        <li>• Automatické vypínanie osvetlenia po 22:00</li>
+                        <li>• Zníženie teploty v neobývaných miestnostiach</li>
+                        <li>• Oprava tečúcich kohútikov</li>
+                      </ul>
+                    </div>
+                    <div>
+                      <span className="font-medium text-blue-700">
+                        Dlhodobé riešenia:
+                      </span>
+                      <ul className="mt-1 space-y-1 text-blue-600">
+                        <li>• Inštalácia pohybových senzorov</li>
+                        <li>• Automatické riadenie klimatizácie</li>
+                        <li>• Školenie zamestnancov o úsporách</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          <Button
+            onClick={onShowAnalytics}
+            variant="outline"
+            className="gap-2 border-emerald-300 hover:bg-emerald-50 text-emerald-700"
+          >
+            <BarChart3 className="h-4 w-4" />
+            Pokročilá analytika
+          </Button>
+        </div>
+
+        {/* Key Metrics with Enhanced Design */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* Smart Temperature Control */}
           <Card className="bg-white/80 backdrop-blur-sm border-gray-200/60 shadow-xl hover:shadow-2xl transition-all duration-500 hover:scale-105">
@@ -607,56 +1094,6 @@ const Dashboard = ({
           </Card>
         </div>
 
-        {/* Digital Twin Innovation Showcase */}
-        <Card className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 p-1 shadow-2xl">
-          <div className="bg-white rounded-lg p-6">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <div className="p-3 bg-gradient-to-br from-indigo-600 to-purple-700 rounded-xl shadow-lg">
-                  <Target className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-gray-900">
-                    AI-Powered Digital Twin Innovation
-                  </h3>
-                  <p className="text-sm text-gray-600">
-                    Pokročilé riešenie pre efektívnu správu budovy
-                  </p>
-                </div>
-              </div>
-              <Badge className="bg-gradient-to-r from-indigo-100 to-purple-100 text-indigo-800 px-4 py-2">
-                <FlaskConical className="h-4 w-4 mr-2" />
-                Inovatívne riešenie
-              </Badge>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-              {Object.entries(digitalTwinMetrics).map(([key, value], index) => (
-                <div
-                  key={key}
-                  className={cn(
-                    "text-center p-4 rounded-xl transition-all duration-300 hover:scale-105",
-                    [
-                      "bg-blue-50 border border-blue-200",
-                      "bg-emerald-50 border border-emerald-200",
-                      "bg-purple-50 border border-purple-200",
-                      "bg-orange-50 border border-orange-200",
-                      "bg-pink-50 border border-pink-200",
-                    ][index]
-                  )}
-                >
-                  <div className="text-2xl font-bold text-gray-900 mb-1">
-                    {value.split(" ")[0]}
-                  </div>
-                  <div className="text-xs text-gray-600 font-medium">
-                    {value.split(" ").slice(1).join(" ")}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </Card>
-
         {/* Enhanced Action Buttons */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card
@@ -730,263 +1167,132 @@ const Dashboard = ({
           </Card>
         </div>
 
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-          {/* Key Areas - Enhanced Municipal Focus */}
-          <div className="xl:col-span-2">
-            <Card className="bg-white/80 backdrop-blur-sm border-gray-200/60 shadow-xl h-full">
-              <CardHeader className="pb-4">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-3">
-                    <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg">
-                      <MapPin className="h-5 w-5 text-white" />
+        {/* Key Areas */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+          <Card className="bg-white/80 backdrop-blur-sm border-gray-200/60 shadow-xl">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-3">
+                <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg">
+                  <MapPin className="h-5 w-5 text-white" />
+                </div>
+                Kľúčové oblasti úradu
+                <Badge className="bg-blue-100 text-blue-700">
+                  Live monitoring
+                </Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {keyAreas.map((area) => (
+                <div
+                  key={area.id}
+                  className={cn(
+                    "p-6 rounded-2xl transition-all duration-500 hover:shadow-lg cursor-pointer border",
+                    getStatusColor(area.status)
+                  )}
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-4">
+                      <div className="p-3 bg-white/80 rounded-xl shadow-md backdrop-blur-sm">
+                        {area.icon}
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-gray-900 text-lg mb-1">
+                          {area.name}
+                        </h3>
+                        <p className="text-sm text-gray-600 mb-2">
+                          {area.description}
+                        </p>
+                        <div className="flex items-center gap-2 text-xs text-gray-500">
+                          <Clock className="h-3 w-3" />
+                          <span>Aktualizované pred {area.lastUpdate}</span>
+                        </div>
+                      </div>
                     </div>
-                    Kľúčové oblasti úradu
-                    <Badge className="bg-blue-100 text-blue-700">
-                      Live monitoring
-                    </Badge>
-                  </CardTitle>
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-2 text-sm text-gray-500">
-                      <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-                      <span>Auto-refresh</span>
+                    {getStatusBadge(area.status)}
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-white/60 rounded-xl p-4 border border-white/50 backdrop-blur-sm">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Thermometer className="h-4 w-4 text-red-500" />
+                        <span className="text-sm font-medium">Teplota</span>
+                      </div>
+                      <div className="text-2xl font-bold text-gray-900">
+                        {area.temperature}°C
+                      </div>
                     </div>
-                    <Button variant="outline" size="sm" className="gap-2">
-                      <Settings2 className="h-4 w-4" />
-                      Konfigurovať
-                    </Button>
+
+                    <div className="bg-white/60 rounded-xl p-4 border border-white/50 backdrop-blur-sm">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Users className="h-4 w-4 text-blue-500" />
+                        <span className="text-sm font-medium">Obsadenosť</span>
+                      </div>
+                      <div className="text-2xl font-bold text-gray-900">
+                        {area.occupancy.current}/{area.occupancy.capacity}
+                      </div>
+                    </div>
+
+                    <div className="bg-white/60 rounded-xl p-4 border border-white/50 backdrop-blur-sm">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Wind className="h-4 w-4 text-emerald-500" />
+                        <span className="text-sm font-medium">CO₂</span>
+                      </div>
+                      <div className="text-2xl font-bold text-gray-900">
+                        {area.airQuality}
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {keyAreas.map((area) => (
-                  <div
-                    key={area.id}
-                    className={cn(
-                      "p-6 rounded-2xl transition-all duration-500 hover:shadow-lg cursor-pointer border",
-                      getStatusColor(area.status)
-                    )}
-                  >
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-center gap-4">
-                        <div className="p-3 bg-white/80 rounded-xl shadow-md backdrop-blur-sm">
-                          {area.icon}
-                        </div>
-                        <div>
-                          <h3 className="font-bold text-gray-900 text-lg mb-1">
-                            {area.name}
-                          </h3>
-                          <p className="text-sm text-gray-600 mb-2">
-                            {area.description}
-                          </p>
-                          <div className="flex items-center gap-2 text-xs text-gray-500">
-                            <Clock className="h-3 w-3" />
-                            <span>Aktualizované pred {area.lastUpdate}</span>
-                            <span>•</span>
-                            <Zap className="h-3 w-3" />
-                            <span>{area.energyUsage} kW</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex flex-col items-end gap-2">
-                        {getStatusBadge(area.status)}
-                        <Badge variant="outline" className="text-xs">
-                          {area.services.length} služieb
-                        </Badge>
-                      </div>
-                    </div>
+              ))}
+            </CardContent>
+          </Card>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                      {/* Temperature */}
-                      <div className="bg-white/60 rounded-xl p-4 border border-white/50 backdrop-blur-sm">
-                        <div className="flex items-center gap-2 mb-3">
-                          <div className="p-1.5 bg-red-100 rounded-lg">
-                            <Thermometer className="h-4 w-4 text-red-500" />
-                          </div>
-                          <span className="text-sm font-medium text-gray-700">
-                            Teplota
-                          </span>
-                        </div>
-                        <div className="text-2xl font-bold text-gray-900 mb-1">
-                          {area.temperature}°C
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          Optimálny rozsah: 20-24°C
-                        </div>
-                      </div>
-
-                      {/* Occupancy */}
-                      <div className="bg-white/60 rounded-xl p-4 border border-white/50 backdrop-blur-sm">
-                        <div className="flex items-center gap-2 mb-3">
-                          <div className="p-1.5 bg-blue-100 rounded-lg">
-                            <Users className="h-4 w-4 text-blue-500" />
-                          </div>
-                          <span className="text-sm font-medium text-gray-700">
-                            Obsadenosť
-                          </span>
-                        </div>
-                        <div className="text-2xl font-bold text-gray-900 mb-2">
-                          {area.occupancy.current}/{area.occupancy.capacity}
-                        </div>
-                        <Progress
-                          value={area.occupancy.percentage}
-                          className="h-2"
-                        />
-                        <div className="text-xs text-gray-500 mt-1">
-                          {area.occupancy.percentage}% kapacity
-                        </div>
-                      </div>
-
-                      {/* Air Quality */}
-                      <div className="bg-white/60 rounded-xl p-4 border border-white/50 backdrop-blur-sm">
-                        <div className="flex items-center gap-2 mb-3">
-                          <div className="p-1.5 bg-emerald-100 rounded-lg">
-                            <Wind className="h-4 w-4 text-emerald-500" />
-                          </div>
-                          <span className="text-sm font-medium text-gray-700">
-                            CO₂ level
-                          </span>
-                        </div>
-                        <div className="text-2xl font-bold text-gray-900 mb-1">
-                          {area.airQuality}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          ppm (Dobrá kvalita)
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Services */}
-                    <div className="mb-4">
-                      <div className="text-sm font-medium text-gray-700 mb-2">
-                        Dostupné služby:
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {area.services.map((service, index) => (
-                          <Badge
-                            key={index}
-                            variant="secondary"
-                            className="text-xs bg-blue-50 text-blue-700 border-blue-200"
-                          >
-                            {service}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Alerts */}
-                    {area.alerts.length > 0 && (
-                      <div className="space-y-2">
-                        {area.alerts.map((alert, index) => (
-                          <Alert
-                            key={index}
-                            className="border-amber-200 bg-amber-50/80 backdrop-blur-sm"
-                          >
-                            <AlertTriangle className="h-4 w-4 text-amber-600" />
-                            <AlertDescription className="text-amber-800 text-sm">
-                              {alert}
-                            </AlertDescription>
-                          </Alert>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Critical Alerts & System Status */}
-          <div className="xl:col-span-1 space-y-6">
-            {/* Critical Alerts */}
-            <Card className="bg-white/80 backdrop-blur-sm border-gray-200/60 shadow-xl">
-              <CardHeader className="pb-4">
+          {/* System Status & Weather */}
+          <div className="space-y-6">
+            {/* Current Weather & Impact */}
+            <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200 shadow-xl">
+              <CardHeader>
                 <CardTitle className="flex items-center gap-3">
-                  <div className="p-2 bg-gradient-to-br from-red-500 to-orange-600 rounded-lg">
-                    <AlertTriangle className="h-5 w-5 text-white" />
-                  </div>
-                  Kritické upozornenia
-                  <Badge className="bg-red-100 text-red-800">
-                    {criticalAlerts.filter((a) => a.severity === "high").length}{" "}
-                    vysoká priorita
-                  </Badge>
+                  {getWeatherIcon(weatherData.current.condition)}
+                  Aktuálne počasie a dopad
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4 max-h-[400px] overflow-y-auto">
-                  {criticalAlerts.map((alert) => (
-                    <div
-                      key={alert.id}
-                      className={cn(
-                        "p-4 rounded-xl border transition-all duration-300 hover:shadow-md",
-                        getSeverityColor(alert.severity)
-                      )}
-                    >
-                      <div className="flex gap-3">
-                        <div className="flex flex-col items-center gap-2">
-                          <div className="p-2 bg-white/80 rounded-lg shadow-sm">
-                            {alert.icon}
-                          </div>
-                          <span className="text-xs font-mono text-gray-500">
-                            {alert.time}
-                          </span>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between mb-2">
-                            <h4 className="font-semibold text-sm leading-tight">
-                              {alert.title}
-                            </h4>
-                            <Badge
-                              variant="outline"
-                              className={cn(
-                                "text-xs ml-2",
-                                alert.severity === "high"
-                                  ? "border-red-300 text-red-700"
-                                  : alert.severity === "medium"
-                                  ? "border-amber-300 text-amber-700"
-                                  : "border-green-300 text-green-700"
-                              )}
-                            >
-                              {alert.severity === "high"
-                                ? "Vysoká"
-                                : alert.severity === "medium"
-                                ? "Stredná"
-                                : "Nízka"}
-                            </Badge>
-                          </div>
-                          <p className="text-xs leading-relaxed mb-3 text-gray-600">
-                            {alert.description}
-                          </p>
-                          <div className="flex items-center justify-between">
-                            <Badge
-                              variant="outline"
-                              className="text-xs capitalize"
-                            >
-                              {alert.type}
-                            </Badge>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="text-xs h-7 px-3"
-                            >
-                              {alert.action}
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-blue-600">
+                      {weatherData.current.temperature}°C
                     </div>
-                  ))}
+                    <div className="text-sm text-gray-600">
+                      Vonkajšia teplota
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-blue-600">
+                      {weatherData.current.humidity}%
+                    </div>
+                    <div className="text-sm text-gray-600">Vlhkosť</div>
+                  </div>
+                </div>
+                <div className="bg-white/60 p-3 rounded-lg">
+                  <div className="text-sm font-medium text-gray-700 mb-1">
+                    Predpoveď dopadu na náklady:
+                  </div>
+                  <div className="text-lg font-bold text-red-600">
+                    +18% oproti priemeru
+                  </div>
+                  <div className="text-xs text-gray-600">
+                    Kvôli chladnému počasiu očakávame zvýšené náklady na kúrenie
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
             {/* System Status */}
             <Card className="bg-white/80 backdrop-blur-sm border-gray-200/60 shadow-xl">
-              <CardHeader className="pb-4">
+              <CardHeader>
                 <CardTitle className="flex items-center gap-3">
-                  <div className="p-2 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg">
-                    <Activity className="h-5 w-5 text-white" />
-                  </div>
+                  <Activity className="h-5 w-5 text-emerald-600" />
                   Stav systémov
                 </CardTitle>
               </CardHeader>
@@ -994,150 +1300,30 @@ const Dashboard = ({
                 {Object.entries(buildingData.systems).map(([key, system]) => (
                   <div
                     key={key}
-                    className="flex items-center justify-between p-3 rounded-xl bg-gray-50/80 border border-gray-100 hover:bg-gray-100/80 transition-colors"
+                    className="flex items-center justify-between p-3 rounded-xl bg-gray-50/80 border"
                   >
                     <div className="flex items-center gap-3">
                       <div
                         className={cn(
-                          "w-3 h-3 rounded-full border-2 border-white shadow-sm",
+                          "w-3 h-3 rounded-full",
                           system.status === "online"
                             ? "bg-emerald-500 animate-pulse"
-                            : system.status === "warning"
-                            ? "bg-amber-500"
                             : "bg-red-500"
                         )}
                       />
-                      <div>
-                        <div className="font-medium text-sm capitalize text-gray-900">
-                          {key.replace(/([A-Z])/g, " $1").trim()}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          {system.status === "online"
-                            ? "Funguje normálne"
-                            : system.status === "warning"
-                            ? "Vyžaduje pozornosť"
-                            : "Offline"}
-                        </div>
+                      <div className="font-medium text-sm capitalize">
+                        {key.replace(/([A-Z])/g, " $1").trim()}
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="text-sm font-medium text-gray-900">
-                        {system.efficiency}%
-                      </div>
-                      <div className="text-xs text-gray-500">efektívnosť</div>
+                    <div className="text-sm font-medium">
+                      {system.efficiency}%
                     </div>
                   </div>
                 ))}
-
-                {/* Overall System Health */}
-                <div className="mt-6 p-4 bg-gradient-to-r from-emerald-50 to-blue-50 rounded-xl border border-emerald-200">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="h-5 w-5 text-emerald-600" />
-                      <span className="font-semibold text-emerald-900">
-                        Celkový stav systému
-                      </span>
-                    </div>
-                    <Badge className="bg-emerald-100 text-emerald-800">
-                      Výborný
-                    </Badge>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4 text-xs">
-                    <div className="flex items-center gap-2">
-                      <Power className="h-4 w-4 text-emerald-600" />
-                      <span className="text-emerald-700">
-                        {
-                          Object.values(buildingData.systems).filter(
-                            (s) => s.status === "online"
-                          ).length
-                        }
-                        /{Object.values(buildingData.systems).length} systémov
-                        online
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-blue-600" />
-                      <span className="text-blue-700">
-                        Posledná kontrola: 14:35
-                      </span>
-                    </div>
-                  </div>
-                </div>
               </CardContent>
             </Card>
           </div>
         </div>
-
-        {/* Footer with Municipal Information */}
-        <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200 shadow-lg">
-          <CardContent className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div>
-                <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                  <Building className="h-5 w-5 text-blue-600" />
-                  Informácie o budove
-                </h4>
-                <div className="space-y-2 text-sm text-gray-600">
-                  <div>Postavená: {buildingData.buildingInfo.yearBuilt}</div>
-                  <div>
-                    Celková plocha: {buildingData.buildingInfo.totalArea}
-                  </div>
-                  <div>Počet poschodí: {buildingData.buildingInfo.floors}</div>
-                  <Badge variant="outline" className="mt-2">
-                    {buildingData.buildingInfo.lastRenovation}
-                  </Badge>
-                </div>
-              </div>
-
-              <div>
-                <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                  <FlaskConical className="h-5 w-5 text-purple-600" />
-                  IoT & Senzory
-                </h4>
-                <div className="space-y-2 text-sm text-gray-600">
-                  <div>
-                    Aktívne senzory: {buildingData.iot.active}/
-                    {buildingData.iot.sensors}
-                  </div>
-                  <div>Offline: {buildingData.iot.offline} senzorov</div>
-                  <div>Dátové body: {buildingData.iot.dataPoints}</div>
-                  <Badge className="bg-green-100 text-green-800 mt-2">
-                    {Math.round(
-                      (buildingData.iot.active / buildingData.iot.sensors) * 100
-                    )}
-                    % dostupnosť
-                  </Badge>
-                </div>
-              </div>
-
-              <div>
-                <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                  <Target className="h-5 w-5 text-emerald-600" />
-                  Efektívnosť & Úspory
-                </h4>
-                <div className="space-y-2 text-sm text-gray-600">
-                  <div>
-                    Energetická efektívnosť: {buildingData.energy.efficiency}%
-                  </div>
-                  <div>
-                    Mesačná úspora: €
-                    {Math.round(
-                      (buildingData.energy.monthlyBudget *
-                        buildingData.energy.saved) /
-                        100
-                    )}
-                  </div>
-                  <div>
-                    CO₂ redukcia: {buildingData.energy.carbonFootprint}kg
-                  </div>
-                  <Badge className="bg-emerald-100 text-emerald-800 mt-2">
-                    Udržateľný provoz
-                  </Badge>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );
