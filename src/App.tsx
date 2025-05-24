@@ -19,6 +19,7 @@ import { RoomSettingsDialog } from "@/components/RoomSettingsDialog";
 type View = "dashboard" | "floors" | "analytics" | "3d";
 
 function App() {
+  // State management
   const { building, searchRooms, updateRoom } = useBuildingData();
   const [selectedFloor, setSelectedFloor] = useState<Floor | null>(null);
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
@@ -27,6 +28,7 @@ function App() {
   const [showSettings, setShowSettings] = useState(false);
   const { toast } = useToast();
 
+  // Event handlers
   const handleFloorSelect = (floor: Floor) => {
     setSelectedFloor(floor);
     setSelectedRoom(null);
@@ -34,7 +36,10 @@ function App() {
 
   const handleRoomSelect = (room: Room) => {
     setSelectedRoom(room);
-    setShowSettings(true);
+    // Only show settings dialog in floor plan view
+    if (currentView === "floors") {
+      setShowSettings(true);
+    }
   };
 
   const handleSearchQueryChange = (query: string) => {
@@ -46,35 +51,67 @@ function App() {
   };
 
   const handleSaveSettings = (roomId: string, updates: Partial<Room>) => {
-    const success = updateRoom(selectedFloor!.id, roomId, updates);
+    if (!selectedFloor) return;
+
+    const success = updateRoom(selectedFloor.id, roomId, updates);
     if (success) {
       toast({
         title: "Nastavenia aktualizované",
         description: "Nastavenia miestnosti boli úspešne aktualizované.",
       });
       setShowSettings(false);
+
+      // Update selected room with new data
+      const updatedFloor = building.floors.find(
+        (f) => f.id === selectedFloor.id
+      );
+      const updatedRoom = updatedFloor?.rooms.find((r) => r.id === roomId);
+      if (updatedRoom) {
+        setSelectedRoom(updatedRoom);
+      }
+    } else {
+      toast({
+        title: "Chyba",
+        description: "Nepodarilo sa aktualizovať nastavenia miestnosti.",
+        variant: "destructive",
+      });
     }
   };
 
+  const handleViewChange = (view: View) => {
+    setCurrentView(view);
+    // Reset selections when changing views
+    if (view !== "floors") {
+      setShowSettings(false);
+    }
+    if (view === "dashboard") {
+      setSelectedRoom(null);
+      setSelectedFloor(null);
+    }
+  };
+
+  // Render different views
   const renderView = () => {
     switch (currentView) {
       case "dashboard":
         return (
           <Dashboard
-            onManageFloors={() => setCurrentView("floors")}
-            onShowAnalytics={() => setCurrentView("analytics")}
-            onShow3D={() => setCurrentView("3d")}
+            onManageFloors={() => handleViewChange("floors")}
+            onShowAnalytics={() => handleViewChange("analytics")}
+            onShow3D={() => handleViewChange("3d")}
           />
         );
+
       case "floors":
         return (
           <div className="flex flex-col h-full w-full">
+            {/* Header with navigation */}
             <div className="p-4 border-b bg-background/95 backdrop-blur-sm">
               <div className="flex items-center gap-4">
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setCurrentView("dashboard")}
+                  onClick={() => handleViewChange("dashboard")}
                   className="gap-2"
                 >
                   <ArrowLeft className="h-4 w-4" />
@@ -94,6 +131,8 @@ function App() {
                 )}
               </div>
             </div>
+
+            {/* Floor plan content */}
             <div className="flex-1 relative">
               <FloorPlan
                 building={building}
@@ -104,55 +143,87 @@ function App() {
                 searchQuery={searchQuery}
                 onSearchQueryChange={handleSearchQueryChange}
               />
+
+              {/* Room details sidebar */}
               {selectedRoom && (
                 <RoomDetails
                   room={selectedRoom}
                   onClose={handleCloseRoomDetails}
                 />
               )}
+
+              {/* Room settings dialog */}
               <RoomSettingsDialog
                 room={selectedRoom}
                 open={showSettings}
                 onOpenChange={setShowSettings}
                 onSave={handleSaveSettings}
-                onShowAnalytics={() => setCurrentView("analytics")}
+                onShowAnalytics={() => handleViewChange("analytics")}
               />
             </div>
           </div>
         );
+
       case "analytics":
         return (
           <div className="flex flex-col h-full w-full">
-            <div className="p-4 border-b">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setCurrentView("dashboard")}
-                className="gap-2"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Späť na nástenku
-              </Button>
+            {/* Header with navigation */}
+            <div className="p-4 border-b bg-background/95 backdrop-blur-sm">
+              <div className="flex items-center gap-4">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleViewChange("dashboard")}
+                  className="gap-2"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  Späť na nástenku
+                </Button>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-lg font-semibold">Analytika budovy</h1>
+                  {selectedRoom && (
+                    <span className="text-sm text-muted-foreground">
+                      - {selectedRoom.name}
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
+
+            {/* Analytics content */}
             <div className="flex-1">
               <Analytics />
             </div>
           </div>
         );
+
       case "3d":
         return (
           <div className="flex flex-col h-full w-full">
-            <div className="p-4 border-b">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setCurrentView("dashboard")}
-                className="gap-2"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Späť na nástenku
-              </Button>
+            {/* Header with navigation */}
+            <div className="p-4 border-b bg-background/95 backdrop-blur-sm">
+              <div className="flex items-center gap-4">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleViewChange("dashboard")}
+                  className="gap-2"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  Späť na nástenku
+                </Button>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-lg font-semibold">3D Model budovy</h1>
+                  {selectedRoom && (
+                    <span className="text-sm text-muted-foreground">
+                      - {selectedRoom.name}
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
+
+            {/* 3D View content */}
             <div className="flex-1">
               <Building3DView
                 building={building}
@@ -162,16 +233,28 @@ function App() {
             </div>
           </div>
         );
+
+      default:
+        return (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center">
+              <h2 className="text-xl font-semibold mb-2">Neznámy pohľad</h2>
+              <Button onClick={() => handleViewChange("dashboard")}>
+                Späť na nástenku
+              </Button>
+            </div>
+          </div>
+        );
     }
   };
 
   return (
     <ThemeProvider defaultTheme="light" storageKey="building-theme">
       <TooltipProvider>
-        <Layout>
-          {renderView()}
+        <div className="h-screen w-full overflow-hidden">
+          <Layout>{renderView()}</Layout>
           <Toaster />
-        </Layout>
+        </div>
       </TooltipProvider>
     </ThemeProvider>
   );
