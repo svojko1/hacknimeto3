@@ -1,3 +1,4 @@
+// src/App.tsx (updated sections)
 import { useState } from "react";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import Layout from "@/components/Layout";
@@ -16,6 +17,12 @@ import { ArrowLeft } from "lucide-react";
 import { RoomSettingsDialog } from "@/components/RoomSettingsDialog";
 
 type View = "dashboard" | "floors" | "analytics";
+
+interface SearchResult {
+  room: Room;
+  floor: Floor;
+  building: Building;
+}
 
 function App() {
   const { building, searchRooms, updateRoom } = useBuildingData();
@@ -47,7 +54,7 @@ function App() {
     if (results.room) {
       setSelectedFloor(results.floor);
       setSelectedRoom(results.room);
-      setCurrentView("floors"); // Switch to floors view when search finds something
+      setCurrentView("floors");
     } else {
       toast({
         title: "Miestnosť nenájdená",
@@ -55,6 +62,19 @@ function App() {
         variant: "destructive",
       });
     }
+  };
+
+  // New handler for enhanced search results
+  const handleSearchResultSelect = (result: SearchResult) => {
+    setSelectedFloor(result.floor);
+    setSelectedRoom(result.room);
+    setCurrentView("floors");
+    setSearchQuery(result.room.name);
+
+    toast({
+      title: "Miestnosť nájdená",
+      description: `${result.room.name} na ${result.floor.name}`,
+    });
   };
 
   const handleCloseRoomDetails = () => {
@@ -84,7 +104,7 @@ function App() {
       case "floors":
         return (
           <div className="flex flex-col h-full w-full">
-            <div className="p-4 border-b">
+            <div className="p-4 border-b bg-background/95 backdrop-blur-sm">
               <div className="flex items-center gap-4">
                 <Button
                   variant="ghost"
@@ -95,9 +115,25 @@ function App() {
                   <ArrowLeft className="h-4 w-4" />
                   Späť na nástenku
                 </Button>
-                <div className="flex-1">
-                  <SearchBar onSearch={handleSearch} />
+                <div className="flex-1 max-w-2xl">
+                  <SearchBar
+                    building={building}
+                    onSearch={handleSearch}
+                    onResultSelect={handleSearchResultSelect}
+                  />
                 </div>
+                {selectedFloor && (
+                  <div className="hidden md:flex items-center gap-2 text-sm text-muted-foreground">
+                    <span>Aktuálne:</span>
+                    <span className="font-medium">{selectedFloor.name}</span>
+                    {selectedRoom && (
+                      <>
+                        <span>→</span>
+                        <span className="font-medium">{selectedRoom.name}</span>
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
             <div className="flex-1 relative">
@@ -149,10 +185,12 @@ function App() {
 
   return (
     <ThemeProvider defaultTheme="light" storageKey="building-theme">
-      <Layout>
-        {renderView()}
-        <Toaster />
-      </Layout>
+      <TooltipProvider>
+        <Layout>
+          {renderView()}
+          <Toaster />
+        </Layout>
+      </TooltipProvider>
     </ThemeProvider>
   );
 }

@@ -166,6 +166,7 @@ export default function FloorPlan({
 
   // Sort floors by level (highest first)
   const sortedFloors = [...building.floors].sort((a, b) => b.level - a.level);
+  const [highlightedRoom, setHighlightedRoom] = useState<string | null>(null);
 
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault();
@@ -494,6 +495,7 @@ export default function FloorPlan({
 
   // Check if room matches search query
   const isRoomHighlighted = (room: Room) => {
+    if (highlightedRoom === room.id) return true;
     if (!searchQuery.trim()) return false;
     const query = searchQuery.toLowerCase();
     return (
@@ -501,6 +503,17 @@ export default function FloorPlan({
       room.type.toLowerCase().includes(query)
     );
   };
+
+  useEffect(() => {
+    if (searchQuery.trim() && selectedRoom) {
+      setHighlightedRoom(selectedRoom.id);
+      // Auto-remove highlight after 3 seconds
+      const timer = setTimeout(() => {
+        setHighlightedRoom(null);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [searchQuery, selectedRoom]);
 
   if (!floor) {
     return (
