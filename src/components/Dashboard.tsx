@@ -889,8 +889,10 @@ const Dashboard = ({
     <div className="w-full h-full bg-gradient-to-br from-slate-50 via-blue-50/40 to-indigo-50/30 overflow-auto">
       {/* Enhanced Header */}
       <div className="sticky top-0 z-10 bg-white/90 backdrop-blur-xl border-b border-gray-200/60 shadow-lg">
-        <div className="px-8 py-6">
-          <div className="flex items-center justify-between">
+        {/* Changed px-8 to px-4 md:px-8 */}
+        <div className="px-4 md:px-8 py-6">
+          {/* Changed to flex-col md:flex-row, added gap-4 md:gap-0, changed items-center to items-start md:items-center */}
+          <div className="flex flex-col gap-4 items-start md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-6">
               <div className="flex items-center gap-4">
                 <div className="relative">
@@ -901,10 +903,12 @@ const Dashboard = ({
                 </div>
                 {/* --- MODIFIED HEADER SECTION --- */}
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900 mb-1">
+                  {/* Changed text-2xl to text-xl md:text-2xl */}
+                  <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-1">
                     Digitálne dvojča budovy
                   </h1>
-                  <div className="flex items-center gap-2">
+                  {/* Added flex-wrap */}
+                  <div className="flex flex-wrap items-center gap-2">
                     <Select
                       value={selectedBuildingId}
                       onValueChange={(value) => setSelectedBuildingId(value)} // Ensure state updates
@@ -935,7 +939,9 @@ const Dashboard = ({
               </div>
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 self-end md:self-center">
+              {" "}
+              {/* Added self-end md:self-center */}
               <div className="hidden md:flex items-center gap-3 px-4 py-2 bg-gray-50/50 rounded-lg border">
                 <Clock className="h-4 w-4 text-gray-500" />
                 <span className="text-xs text-gray-600">
@@ -943,13 +949,12 @@ const Dashboard = ({
                 </span>
                 <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
               </div>
-
               <NotificationDropdown />
             </div>
           </div>
 
-          {/* Compact Action Buttons Row (Kept as is) */}
-          <div className="flex items-center gap-3 mt-4">
+          {/* Compact Action Buttons Row (Added flex-wrap) */}
+          <div className="flex items-center flex-wrap gap-3 mt-4">
             <Button
               onClick={onManageFloors}
               className="gap-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-md"
@@ -987,7 +992,9 @@ const Dashboard = ({
                   <FileText className="h-4 w-4" /> Detailné dáta
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+              <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto w-[95vw] sm:w-full">
+                {" "}
+                {/* Added w-[95vw] sm:w-full */}
                 {/* ... Dialog Content (Uses expenseData and weatherData) ... */}
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-2">
@@ -1045,9 +1052,11 @@ const Dashboard = ({
                         return (
                           <div
                             key={category}
-                            className="flex items-center justify-between p-3 border rounded-lg"
+                            className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 border rounded-lg" // Added flex-col sm:flex-row items-start
                           >
-                            <span className="font-medium capitalize">
+                            <span className="font-medium capitalize mb-2 sm:mb-0">
+                              {" "}
+                              {/* Added mb-2 sm:mb-0 */}
                               {category === "heating"
                                 ? "Kúrenie"
                                 : category === "lighting"
@@ -1056,10 +1065,12 @@ const Dashboard = ({
                                 ? "Vetranie"
                                 : "Ostatné"}
                             </span>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 w-full sm:w-auto">
+                              {" "}
+                              {/* Added w-full sm:w-auto */}
                               <Progress
                                 value={Number(percentage)}
-                                className="w-24 h-2"
+                                className="w-16 sm:w-24 h-2 flex-grow" // Added flex-grow
                               />
                               <span className="text-sm font-bold w-16 text-right">
                                 {" "}
@@ -1079,7 +1090,9 @@ const Dashboard = ({
                     <h3 className="text-lg font-semibold mb-4">
                       Predpoveď počasia a dopad na náklady
                     </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                      {" "}
+                      {/* Changed md to sm */}
                       {weatherData.forecast.map((month, index) => (
                         <div
                           key={index}
@@ -1115,7 +1128,9 @@ const Dashboard = ({
                   <span className="text-lg">🥔</span> Zemiak Hanby
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-6xl max-h-[80vh] overflow-y-auto">
+              <DialogContent className="max-w-6xl max-h-[80vh] overflow-y-auto w-[95vw] sm:w-full">
+                {" "}
+                {/* Added w-[95vw] sm:w-full */}
                 {/* ... Dialog Content (Uses static shameData) ... */}
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-2 text-xl">
@@ -1140,84 +1155,94 @@ const Dashboard = ({
                       Týmito peniazmi by sme mohli kúpiť 2,563 kg zemiakov! 🥔
                     </p>
                   </div>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-20">Rank</TableHead>
-                        <TableHead>Miestnosť</TableHead>
-                        <TableHead>Titul Hanby</TableHead>
-                        <TableHead>Problémy</TableHead>
-                        <TableHead>Plytvanie</TableHead>
-                        <TableHead>Efektívnosť</TableHead>
-                        <TableHead>Reakcia</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {shameData.rooms.map((room) => (
-                        <TableRow
-                          key={room.rank}
-                          className={room.rank <= 3 ? "bg-red-50" : ""}
-                        >
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <span className="text-2xl">
-                                {" "}
-                                {getShameEmoji(room.rank)}{" "}
-                              </span>
-                              <span className="font-bold">#{room.rank}</span>
-                            </div>
-                          </TableCell>
-                          <TableCell className="font-medium">
-                            {" "}
-                            {room.name}{" "}
-                          </TableCell>
-                          <TableCell>
-                            <Badge
-                              variant={
-                                room.rank === 1
-                                  ? "destructive"
-                                  : room.rank <= 3
-                                  ? "default"
-                                  : "secondary"
-                              }
-                            >
-                              {room.shame}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="max-w-xs">
-                            <ul className="text-sm space-y-1">
-                              {room.issues.map((issue, i) => (
-                                <li key={i} className="flex items-start gap-1">
-                                  <span className="text-red-500 mt-0.5">•</span>
-                                  <span>{issue}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          </TableCell>
-                          <TableCell>
-                            <div className="text-red-600 font-bold">
-                              -{room.wastedEuro}€
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <Progress
-                                value={room.efficiency}
-                                className="w-16 h-2"
-                              />
-                              <span className="text-sm font-medium">
-                                {" "}
-                                {room.efficiency}%{" "}
-                              </span>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <span className="text-2xl">{room.emoji}</span>
-                          </TableCell>
+                  {/* Added wrapper for horizontal scroll */}
+                  <div className="relative w-full overflow-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-20">Rank</TableHead>
+                          <TableHead>Miestnosť</TableHead>
+                          <TableHead>Titul Hanby</TableHead>
+                          <TableHead>Problémy</TableHead>
+                          <TableHead>Plytvanie</TableHead>
+                          <TableHead>Efektívnosť</TableHead>
+                          <TableHead>Reakcia</TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                      </TableHeader>
+                      <TableBody>
+                        {shameData.rooms.map((room) => (
+                          <TableRow
+                            key={room.rank}
+                            className={room.rank <= 3 ? "bg-red-50" : ""}
+                          >
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <span className="text-2xl">
+                                  {" "}
+                                  {getShameEmoji(room.rank)}{" "}
+                                </span>
+                                <span className="font-bold">#{room.rank}</span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="font-medium">
+                              {" "}
+                              {room.name}{" "}
+                            </TableCell>
+                            <TableCell>
+                              <Badge
+                                variant={
+                                  room.rank === 1
+                                    ? "destructive"
+                                    : room.rank <= 3
+                                    ? "default"
+                                    : "secondary"
+                                }
+                              >
+                                {room.shame}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="min-w-[250px]">
+                              {" "}
+                              {/* Added min-w */}
+                              <ul className="text-sm space-y-1">
+                                {room.issues.map((issue, i) => (
+                                  <li
+                                    key={i}
+                                    className="flex items-start gap-1"
+                                  >
+                                    <span className="text-red-500 mt-0.5">
+                                      •
+                                    </span>
+                                    <span>{issue}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </TableCell>
+                            <TableCell>
+                              <div className="text-red-600 font-bold">
+                                -{room.wastedEuro}€
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <Progress
+                                  value={room.efficiency}
+                                  className="w-16 h-2"
+                                />
+                                <span className="text-sm font-medium">
+                                  {" "}
+                                  {room.efficiency}%{" "}
+                                </span>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <span className="text-2xl">{room.emoji}</span>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
                 </div>
               </DialogContent>
             </Dialog>
@@ -1225,9 +1250,10 @@ const Dashboard = ({
         </div>
       </div>
 
-      {/* Main Content (Now uses dynamic data) */}
-      <div className="px-8 py-6 space-y-8">
+      {/* Main Content (Changed px-8 to px-4 md:px-8) */}
+      <div className="px-4 md:px-8 py-6 space-y-8">
         {/* Enhanced Expense Management Section */}
+        {/* Grids already use mobile-first approach (grid-cols-1) */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <Card className="bg-gradient-to-br from-blue-600 to-indigo-700 text-white shadow-2xl hover:shadow-3xl transition-all duration-500">
             <CardContent className="p-6">
@@ -1619,8 +1645,9 @@ const Dashboard = ({
             {" "}
             <CardHeader className="pb-4">
               {" "}
-              <CardTitle className="flex items-center gap-3">
+              <CardTitle className="flex flex-wrap items-center gap-3">
                 {" "}
+                {/* Added flex-wrap */}{" "}
                 <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg">
                   {" "}
                   <MapPin className="h-5 w-5 text-white" />{" "}
@@ -1643,7 +1670,8 @@ const Dashboard = ({
                   )}
                 >
                   {" "}
-                  <div className="flex items-start justify-between mb-4">
+                  {/* Changed to flex-col sm:flex-row items-start */}
+                  <div className="flex flex-col sm:flex-row items-start justify-between mb-4 gap-4 sm:gap-0">
                     {" "}
                     <div className="flex items-center gap-4">
                       {" "}
@@ -1668,7 +1696,11 @@ const Dashboard = ({
                         </div>{" "}
                       </div>{" "}
                     </div>{" "}
-                    {getStatusBadge(area.occupancy.status)}{" "}
+                    <div className="self-end sm:self-center">
+                      {" "}
+                      {/* Added self-end sm:self-center */}
+                      {getStatusBadge(area.occupancy.status)}{" "}
+                    </div>
                   </div>{" "}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {" "}
