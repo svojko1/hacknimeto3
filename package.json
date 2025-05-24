@@ -3,15 +3,15 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "engines": {
+    "node": "18.x"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "type-check": "tsc --noEmit",
     "lint": "eslint .",
     "preview": "vite preview"
-  },
-  "engines": {
-    "node": ">=18.0.0 <19.0.0"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
