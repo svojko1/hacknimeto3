@@ -953,8 +953,8 @@ const Dashboard = ({
             </div>
           </div>
 
-          {/* Compact Action Buttons Row (Added flex-wrap) */}
-          <div className="flex items-center flex-wrap gap-3 mt-4">
+          {/* Compact Action Buttons Row (Now with horizontal scroll) */}
+          <div className="flex items-center overflow-x-auto whitespace-nowrap gap-3 mt-4">
             <Button
               onClick={onManageFloors}
               className="gap-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-md"
