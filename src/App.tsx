@@ -6,6 +6,7 @@ import Dashboard from "@/components/Dashboard";
 import FloorPlan from "@/components/FloorPlan";
 import RoomDetails from "@/components/RoomDetails";
 import Analytics from "@/components/Analytics";
+import Building3DView from "@/components/Building3DView";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
@@ -15,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { RoomSettingsDialog } from "@/components/RoomSettingsDialog";
 
-type View = "dashboard" | "floors" | "analytics";
+type View = "dashboard" | "floors" | "analytics" | "3d";
 
 function App() {
   const { building, searchRooms, updateRoom } = useBuildingData();
@@ -62,6 +63,7 @@ function App() {
           <Dashboard
             onManageFloors={() => setCurrentView("floors")}
             onShowAnalytics={() => setCurrentView("analytics")}
+            onShow3D={() => setCurrentView("3d")}
           />
         );
       case "floors":
@@ -134,6 +136,29 @@ function App() {
             </div>
             <div className="flex-1">
               <Analytics />
+            </div>
+          </div>
+        );
+      case "3d":
+        return (
+          <div className="flex flex-col h-full w-full">
+            <div className="p-4 border-b">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setCurrentView("dashboard")}
+                className="gap-2"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Späť na nástenku
+              </Button>
+            </div>
+            <div className="flex-1">
+              <Building3DView
+                building={building}
+                selectedRoom={selectedRoom}
+                onRoomSelect={handleRoomSelect}
+              />
             </div>
           </div>
         );
