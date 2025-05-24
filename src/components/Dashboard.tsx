@@ -954,298 +954,308 @@ const Dashboard = ({
           </div>
 
           {/* Compact Action Buttons Row (Now with horizontal scroll) */}
-          <div className="flex items-center overflow-x-auto whitespace-nowrap gap-3 mt-4">
-            <Button
-              onClick={onManageFloors}
-              className="gap-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-md"
-              size="sm"
-            >
-              <MapPin className="h-4 w-4" /> Interaktívne plány
-            </Button>
-            <Button
-              onClick={onShowAnalytics}
-              variant="outline"
-              className="gap-2 border-emerald-300 hover:bg-emerald-50 text-emerald-700"
-              size="sm"
-            >
-              <BarChart3 className="h-4 w-4" /> Analytika
-            </Button>
-            <Button
-              onClick={onShow3D}
-              variant="outline"
-              className="gap-2 border-purple-300 hover:bg-purple-50 text-purple-700"
-              size="sm"
-            >
-              <Eye className="h-4 w-4" /> 3D Model
-            </Button>
-            {/* --- Dialog Triggers (Kept as is) --- */}
-            <Dialog
-              open={showExpenseDetails}
-              onOpenChange={setShowExpenseDetails}
-            >
-              <DialogTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-2 border-blue-300 hover:bg-blue-50 text-blue-700"
-                >
-                  <FileText className="h-4 w-4" /> Detailné dáta
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto w-[95vw] sm:w-full">
-                {" "}
-                {/* Added w-[95vw] sm:w-full */}
-                {/* ... Dialog Content (Uses expenseData and weatherData) ... */}
-                <DialogHeader>
-                  <DialogTitle className="flex items-center gap-2">
-                    <LineChart className="h-5 w-5" />
-                    Detailná analýza spotreby a predikcie
-                  </DialogTitle>
-                </DialogHeader>
-                <div className="space-y-6">
-                  <div>
-                    <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                      <Cloud className="h-5 w-5" />
-                      Vplyv počasia na energetickú spotrebu
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {expenseData.prediction.nextMonth.factors.map(
-                        (factor, index) => (
+          <div className="w-full overflow-x-auto mt-4 pb-2">
+            {" "}
+            {/* Added pb-2 to make space for scrollbar if it appears */}
+            <div className="flex items-center gap-3 whitespace-nowrap">
+              {" "}
+              {/* Ensure buttons don't wrap */}
+              <Button
+                onClick={onManageFloors}
+                className="gap-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-md flex-shrink-0"
+                size="sm"
+              >
+                <MapPin className="h-4 w-4" /> Interaktívne plány
+              </Button>
+              <Button
+                onClick={onShowAnalytics}
+                variant="outline"
+                className="gap-2 border-emerald-300 hover:bg-emerald-50 text-emerald-700 flex-shrink-0"
+                size="sm"
+              >
+                <BarChart3 className="h-4 w-4" /> Analytika
+              </Button>
+              <Button
+                onClick={onShow3D}
+                variant="outline"
+                className="gap-2 border-purple-300 hover:bg-purple-50 text-purple-700 flex-shrink-0"
+                size="sm"
+              >
+                <Eye className="h-4 w-4" /> 3D Model
+              </Button>
+              {/* --- Dialog Triggers --- */}
+              <Dialog
+                open={showExpenseDetails}
+                onOpenChange={setShowExpenseDetails}
+              >
+                <DialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-2 border-blue-300 hover:bg-blue-50 text-blue-700 flex-shrink-0"
+                  >
+                    <FileText className="h-4 w-4" /> Detailné dáta
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto w-[95vw] sm:w-full">
+                  {" "}
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                      <LineChart className="h-5 w-5" />
+                      Detailná analýza spotreby a predikcie
+                    </DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                        <Cloud className="h-5 w-5" />
+                        Vplyv počasia na energetickú spotrebu
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {expenseData.prediction.nextMonth.factors.map(
+                          (factor, index) => (
+                            <div
+                              key={index}
+                              className="p-4 border rounded-lg bg-gray-50"
+                            >
+                              <div className="flex justify-between items-center mb-2">
+                                <span className="font-medium">
+                                  {factor.name}
+                                </span>
+                                <Badge
+                                  variant={
+                                    factor.impact.startsWith("+")
+                                      ? "destructive"
+                                      : "default"
+                                  }
+                                >
+                                  {factor.impact}
+                                </Badge>
+                              </div>
+                              <p className="text-sm text-gray-600">
+                                {" "}
+                                {factor.description}{" "}
+                              </p>
+                            </div>
+                          )
+                        )}
+                      </div>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold mb-4">
+                        Rozdelenie nákladov (predikcia)
+                      </h3>
+                      <div className="space-y-3">
+                        {Object.entries(
+                          expenseData.prediction.nextMonth.breakdown
+                        ).map(([category, amount]) => {
+                          const total = expenseData.prediction.nextMonth.amount;
+                          const percentage =
+                            total > 0
+                              ? ((amount / total) * 100).toFixed(1)
+                              : "0.0";
+                          return (
+                            <div
+                              key={category}
+                              className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 border rounded-lg" // Added flex-col sm:flex-row items-start
+                            >
+                              <span className="font-medium capitalize mb-2 sm:mb-0">
+                                {" "}
+                                {/* Added mb-2 sm:mb-0 */}
+                                {category === "heating"
+                                  ? "Kúrenie"
+                                  : category === "lighting"
+                                  ? "Osvetlenie"
+                                  : category === "ventilation"
+                                  ? "Vetranie"
+                                  : "Ostatné"}
+                              </span>
+                              <div className="flex items-center gap-2 w-full sm:w-auto">
+                                {" "}
+                                {/* Added w-full sm:w-auto */}
+                                <Progress
+                                  value={Number(percentage)}
+                                  className="w-16 sm:w-24 h-2 flex-grow" // Added flex-grow
+                                />
+                                <span className="text-sm font-bold w-16 text-right">
+                                  {" "}
+                                  {amount}€{" "}
+                                </span>
+                                <span className="text-xs text-gray-500 w-12">
+                                  {" "}
+                                  ({percentage}%){" "}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold mb-4">
+                        Predpoveď počasia a dopad na náklady
+                      </h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        {" "}
+                        {/* Changed md to sm */}
+                        {weatherData.forecast.map((month, index) => (
                           <div
                             key={index}
-                            className="p-4 border rounded-lg bg-gray-50"
+                            className="p-4 border rounded-lg text-center"
                           >
-                            <div className="flex justify-between items-center mb-2">
-                              <span className="font-medium">{factor.name}</span>
-                              <Badge
-                                variant={
-                                  factor.impact.startsWith("+")
-                                    ? "destructive"
-                                    : "default"
-                                }
-                              >
-                                {factor.impact}
-                              </Badge>
+                            <div className="flex justify-center mb-2">
+                              {" "}
+                              {getWeatherIcon(month.condition)}{" "}
                             </div>
-                            <p className="text-sm text-gray-600">
+                            <div className="font-semibold">{month.month}</div>
+                            <div className="text-2xl font-bold text-blue-600">
                               {" "}
-                              {factor.description}{" "}
-                            </p>
-                          </div>
-                        )
-                      )}
-                    </div>
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold mb-4">
-                      Rozdelenie nákladov (predikcia)
-                    </h3>
-                    <div className="space-y-3">
-                      {Object.entries(
-                        expenseData.prediction.nextMonth.breakdown
-                      ).map(([category, amount]) => {
-                        const total = expenseData.prediction.nextMonth.amount;
-                        const percentage =
-                          total > 0
-                            ? ((amount / total) * 100).toFixed(1)
-                            : "0.0";
-                        return (
-                          <div
-                            key={category}
-                            className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 border rounded-lg" // Added flex-col sm:flex-row items-start
-                          >
-                            <span className="font-medium capitalize mb-2 sm:mb-0">
+                              {month.avgTemp}°C{" "}
+                            </div>
+                            <div className="text-xs text-gray-500 mt-1 capitalize">
                               {" "}
-                              {/* Added mb-2 sm:mb-0 */}
-                              {category === "heating"
-                                ? "Kúrenie"
-                                : category === "lighting"
-                                ? "Osvetlenie"
-                                : category === "ventilation"
-                                ? "Vetranie"
-                                : "Ostatné"}
-                            </span>
-                            <div className="flex items-center gap-2 w-full sm:w-auto">
-                              {" "}
-                              {/* Added w-full sm:w-auto */}
-                              <Progress
-                                value={Number(percentage)}
-                                className="w-16 sm:w-24 h-2 flex-grow" // Added flex-grow
-                              />
-                              <span className="text-sm font-bold w-16 text-right">
-                                {" "}
-                                {amount}€{" "}
-                              </span>
-                              <span className="text-xs text-gray-500 w-12">
-                                {" "}
-                                ({percentage}%){" "}
-                              </span>
+                              {month.impact.replace("_", " ")}{" "}
                             </div>
                           </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold mb-4">
-                      Predpoveď počasia a dopad na náklady
-                    </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                      {" "}
-                      {/* Changed md to sm */}
-                      {weatherData.forecast.map((month, index) => (
-                        <div
-                          key={index}
-                          className="p-4 border rounded-lg text-center"
-                        >
-                          <div className="flex justify-center mb-2">
-                            {" "}
-                            {getWeatherIcon(month.condition)}{" "}
-                          </div>
-                          <div className="font-semibold">{month.month}</div>
-                          <div className="text-2xl font-bold text-blue-600">
-                            {" "}
-                            {month.avgTemp}°C{" "}
-                          </div>
-                          <div className="text-xs text-gray-500 mt-1 capitalize">
-                            {" "}
-                            {month.impact.replace("_", " ")}{" "}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
-            <Dialog open={showShameTable} onOpenChange={setShowShameTable}>
-              <DialogTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-2 border-orange-300 hover:bg-orange-50 text-orange-700"
-                >
-                  <span className="text-lg">🥔</span> Zemiak Hanby
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-6xl max-h-[80vh] overflow-y-auto w-[95vw] sm:w-full">
-                {" "}
-                {/* Added w-[95vw] sm:w-full */}
-                {/* ... Dialog Content (Uses static shameData) ... */}
-                <DialogHeader>
-                  <DialogTitle className="flex items-center gap-2 text-xl">
-                    {shameData.title}
-                  </DialogTitle>
-                  <p className="text-gray-600">{shameData.subtitle}</p>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div className="bg-gradient-to-r from-orange-50 to-red-50 p-4 rounded-lg border border-orange-200">
-                    <div className="flex items-center gap-2 text-orange-800 mb-2">
-                      <Frown className="h-5 w-5" />
-                      <span className="font-semibold">
-                        Celkové plytvanie tento mesiac:{" "}
-                        {shameData.rooms.reduce(
-                          (sum, room) => sum + room.wastedEuro,
-                          0
-                        )}{" "}
-                        €
-                      </span>
-                    </div>
-                    <p className="text-sm text-orange-700">
-                      Týmito peniazmi by sme mohli kúpiť 2,563 kg zemiakov! 🥔
-                    </p>
-                  </div>
-                  {/* Added wrapper for horizontal scroll */}
-                  <div className="relative w-full overflow-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead className="w-20">Rank</TableHead>
-                          <TableHead>Miestnosť</TableHead>
-                          <TableHead>Titul Hanby</TableHead>
-                          <TableHead>Problémy</TableHead>
-                          <TableHead>Plytvanie</TableHead>
-                          <TableHead>Efektívnosť</TableHead>
-                          <TableHead>Reakcia</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {shameData.rooms.map((room) => (
-                          <TableRow
-                            key={room.rank}
-                            className={room.rank <= 3 ? "bg-red-50" : ""}
-                          >
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                <span className="text-2xl">
-                                  {" "}
-                                  {getShameEmoji(room.rank)}{" "}
-                                </span>
-                                <span className="font-bold">#{room.rank}</span>
-                              </div>
-                            </TableCell>
-                            <TableCell className="font-medium">
-                              {" "}
-                              {room.name}{" "}
-                            </TableCell>
-                            <TableCell>
-                              <Badge
-                                variant={
-                                  room.rank === 1
-                                    ? "destructive"
-                                    : room.rank <= 3
-                                    ? "default"
-                                    : "secondary"
-                                }
-                              >
-                                {room.shame}
-                              </Badge>
-                            </TableCell>
-                            <TableCell className="min-w-[250px]">
-                              {" "}
-                              {/* Added min-w */}
-                              <ul className="text-sm space-y-1">
-                                {room.issues.map((issue, i) => (
-                                  <li
-                                    key={i}
-                                    className="flex items-start gap-1"
-                                  >
-                                    <span className="text-red-500 mt-0.5">
-                                      •
-                                    </span>
-                                    <span>{issue}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            </TableCell>
-                            <TableCell>
-                              <div className="text-red-600 font-bold">
-                                -{room.wastedEuro}€
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                <Progress
-                                  value={room.efficiency}
-                                  className="w-16 h-2"
-                                />
-                                <span className="text-sm font-medium">
-                                  {" "}
-                                  {room.efficiency}%{" "}
-                                </span>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <span className="text-2xl">{room.emoji}</span>
-                            </TableCell>
-                          </TableRow>
                         ))}
-                      </TableBody>
-                    </Table>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </DialogContent>
-            </Dialog>
+                </DialogContent>
+              </Dialog>
+              <Dialog open={showShameTable} onOpenChange={setShowShameTable}>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-2 border-orange-300 hover:bg-orange-50 text-orange-700 flex-shrink-0"
+                  >
+                    <span className="text-lg">🥔</span> Zemiak Hanby
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-6xl max-h-[80vh] overflow-y-auto w-[95vw] sm:w-full">
+                  {" "}
+                  {/* Added w-[95vw] sm:w-full */}
+                  {/* ... Dialog Content (Uses static shameData) ... */}
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2 text-xl">
+                      {shameData.title}
+                    </DialogTitle>
+                    <p className="text-gray-600">{shameData.subtitle}</p>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div className="bg-gradient-to-r from-orange-50 to-red-50 p-4 rounded-lg border border-orange-200">
+                      <div className="flex items-center gap-2 text-orange-800 mb-2">
+                        <Frown className="h-5 w-5" />
+                        <span className="font-semibold">
+                          Celkové plytvanie tento mesiac:{" "}
+                          {shameData.rooms.reduce(
+                            (sum, room) => sum + room.wastedEuro,
+                            0
+                          )}{" "}
+                          €
+                        </span>
+                      </div>
+                      <p className="text-sm text-orange-700">
+                        Týmito peniazmi by sme mohli kúpiť 2,563 kg zemiakov! 🥔
+                      </p>
+                    </div>
+                    {/* Added wrapper for horizontal scroll */}
+                    <div className="relative w-full overflow-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="w-20">Rank</TableHead>
+                            <TableHead>Miestnosť</TableHead>
+                            <TableHead>Titul Hanby</TableHead>
+                            <TableHead>Problémy</TableHead>
+                            <TableHead>Plytvanie</TableHead>
+                            <TableHead>Efektívnosť</TableHead>
+                            <TableHead>Reakcia</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {shameData.rooms.map((room) => (
+                            <TableRow
+                              key={room.rank}
+                              className={room.rank <= 3 ? "bg-red-50" : ""}
+                            >
+                              <TableCell>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-2xl">
+                                    {" "}
+                                    {getShameEmoji(room.rank)}{" "}
+                                  </span>
+                                  <span className="font-bold">
+                                    #{room.rank}
+                                  </span>
+                                </div>
+                              </TableCell>
+                              <TableCell className="font-medium">
+                                {" "}
+                                {room.name}{" "}
+                              </TableCell>
+                              <TableCell>
+                                <Badge
+                                  variant={
+                                    room.rank === 1
+                                      ? "destructive"
+                                      : room.rank <= 3
+                                      ? "default"
+                                      : "secondary"
+                                  }
+                                >
+                                  {room.shame}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="min-w-[250px]">
+                                {" "}
+                                {/* Added min-w */}
+                                <ul className="text-sm space-y-1">
+                                  {room.issues.map((issue, i) => (
+                                    <li
+                                      key={i}
+                                      className="flex items-start gap-1"
+                                    >
+                                      <span className="text-red-500 mt-0.5">
+                                        •
+                                      </span>
+                                      <span>{issue}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </TableCell>
+                              <TableCell>
+                                <div className="text-red-600 font-bold">
+                                  -{room.wastedEuro}€
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex items-center gap-2">
+                                  <Progress
+                                    value={room.efficiency}
+                                    className="w-16 h-2"
+                                  />
+                                  <span className="text-sm font-medium">
+                                    {" "}
+                                    {room.efficiency}%{" "}
+                                  </span>
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                <span className="text-2xl">{room.emoji}</span>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+              <div className="w-1 h-1 flex-shrink-0"></div>{" "}
+              {/* Optional: Adds a tiny bit of space at the end */}
+            </div>
           </div>
         </div>
       </div>
