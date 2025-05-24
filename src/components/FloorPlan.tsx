@@ -1024,39 +1024,6 @@ export default function FloorPlan({
     );
   };
 
-  if (!floor && viewMode === "2d") {
-    return (
-      <div className="flex-1 flex flex-col items-center justify-center p-8 text-muted-foreground">
-        <div className="text-center space-y-4">
-          <Search className="h-12 w-12 mx-auto opacity-50" />
-          <div>
-            <h3 className="text-lg font-medium">Vyberte poschodie</h3>
-            <p className="text-sm">
-              Začnite výberom poschodia pre zobrazenie plánu miestností
-            </p>
-          </div>
-          <Select
-            onValueChange={(value) => {
-              const selectedFloor = building.floors.find((f) => f.id === value);
-              if (selectedFloor) onFloorSelect(selectedFloor);
-            }}
-          >
-            <SelectTrigger className="w-64">
-              <SelectValue placeholder="Vybrať poschodie..." />
-            </SelectTrigger>
-            <SelectContent>
-              {sortedFloors.map((floorOption) => (
-                <SelectItem key={floorOption.id} value={floorOption.id}>
-                  {floorOption.name} (Úroveň {floorOption.level})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-    );
-  }
-
   const currentMetric = METRICS[selectedMetric];
   const floorDimensions = floor
     ? getFloorDimensions(floor)
