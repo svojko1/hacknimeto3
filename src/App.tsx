@@ -15,6 +15,7 @@ import { Building, Floor, Room } from "@/types";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { RoomSettingsDialog } from "@/components/RoomSettingsDialog";
+import Settings from "@/components/SettingsPage";
 
 type View = "dashboard" | "floors" | "analytics" | "3d";
 
@@ -99,6 +100,7 @@ function App() {
             onManageFloors={() => handleViewChange("floors")}
             onShowAnalytics={() => handleViewChange("analytics")}
             onShow3D={() => handleViewChange("3d")}
+            onShowSettings={() => handleViewChange("settings")}
           />
         );
 
@@ -230,6 +232,29 @@ function App() {
                 selectedRoom={selectedRoom}
                 onRoomSelect={handleRoomSelect}
               />
+            </div>
+          </div>
+        );
+
+      case "settings":
+        return (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center">
+              <h2 className="text-xl font-semibold mb-2">Nastavenia budovy</h2>
+              <Settings
+                building={building}
+                onUpdateBuilding={(updates) => {
+                  // Handle building updates here
+                  toast({
+                    title: "Nastavenia budovy aktualizované",
+                    description:
+                      "Nastavenia budovy boli úspešne aktualizované.",
+                  });
+                }}
+              />
+              <Button onClick={() => handleViewChange("dashboard")}>
+                Späť na nástenku
+              </Button>
             </div>
           </div>
         );
