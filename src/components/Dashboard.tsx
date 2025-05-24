@@ -109,7 +109,7 @@ const Dashboard = ({
     },
     prediction: {
       nextMonth: {
-        amount: 2847,
+        amount: 1323,
         confidence: 94,
         weather: "chladnejšie počasie",
         factors: [
@@ -612,7 +612,7 @@ const Dashboard = ({
                     <span className="text-lg opacity-90">€</span>
                   </div>
                   <p className="text-sm opacity-90 mt-1">
-                    Predikovaná spotreba na december
+                    Predikovaná spotreba na jun
                   </p>
                 </div>
                 <div className="space-y-1 text-xs">
