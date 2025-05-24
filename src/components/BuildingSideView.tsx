@@ -1,13 +1,13 @@
-import { Building, Floor } from '@/types';
-import { cn } from '@/lib/utils';
-import { motion } from '@/lib/motion';
-import { Plus, Minus, ChevronUp, ChevronDown, Settings } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { 
+import { Building, Floor } from "@/types";
+import { cn } from "@/lib/utils";
+import { motion } from "@/lib/motion";
+import { Plus, Minus, ChevronUp, ChevronDown, Settings } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from '@/components/ui/tooltip';
+} from "@/components/ui/tooltip";
 
 interface BuildingSideViewProps {
   building: Building;
@@ -15,14 +15,14 @@ interface BuildingSideViewProps {
   onFloorSelect: (floor: Floor) => void;
 }
 
-export default function BuildingSideView({ 
-  building, 
-  selectedFloor, 
-  onFloorSelect 
+export default function BuildingSideView({
+  building,
+  selectedFloor,
+  onFloorSelect,
 }: BuildingSideViewProps) {
   // Sort floors in descending order (top floor first)
   const sortedFloors = [...building.floors].sort((a, b) => b.level - a.level);
-  
+
   return (
     <div className="w-64 border-r flex flex-col bg-card">
       <div className="p-4 border-b bg-background">
@@ -34,7 +34,7 @@ export default function BuildingSideView({
         </div>
         <p className="text-sm text-muted-foreground">{building.address}</p>
       </div>
-      
+
       <div className="flex-1 overflow-auto">
         <div className="p-4 border-b bg-background/50">
           <div className="flex items-center justify-between mb-3">
@@ -70,34 +70,32 @@ export default function BuildingSideView({
                     ? "border-primary bg-primary/10"
                     : "hover:bg-accent"
                 )}
-                style={{ 
+                style={{
                   height: `${Math.max(60, floor.height / 10)}px`,
-                  minHeight: '60px',
+                  minHeight: "60px",
                 }}
                 onClick={() => onFloorSelect(floor)}
               >
                 <div className="absolute inset-0 flex items-center p-2">
                   <div className="w-full">
                     <div className="flex justify-between items-center">
-                      <span className="font-medium">
-                        {floor.name}
-                      </span>
+                      <span className="font-medium">{floor.name}</span>
                       <div className="flex items-center gap-1">
                         <span className="text-xs text-muted-foreground">
                           Úroveň {floor.level}
                         </span>
                         <div className="flex flex-col">
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
+                          <Button
+                            variant="ghost"
+                            size="icon"
                             className="h-4 w-4"
                             disabled={index === 0}
                           >
                             <ChevronUp className="h-3 w-3" />
                           </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
+                          <Button
+                            variant="ghost"
+                            size="icon"
                             className="h-4 w-4"
                             disabled={index === sortedFloors.length - 1}
                           >
@@ -108,7 +106,12 @@ export default function BuildingSideView({
                     </div>
                     <div className="flex justify-between items-center mt-1">
                       <div className="text-xs text-muted-foreground">
-                        {floor.rooms.length} miestnost{floor.rooms.length === 1 ? '' : floor.rooms.length > 4 ? 'í' : 'i'}
+                        {floor.rooms.length} miestnost
+                        {floor.rooms.length === 1
+                          ? ""
+                          : floor.rooms.length > 4
+                          ? "í"
+                          : "i"}
                       </div>
                       <div className="text-xs text-muted-foreground">
                         {floor.width}' × {floor.height}'

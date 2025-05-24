@@ -1,29 +1,28 @@
-import { useState } from 'react';
-import { ThemeProvider } from '@/components/ThemeProvider';
-import Layout from '@/components/Layout';
-import Dashboard from '@/components/Dashboard';
-import BuildingSideView from '@/components/BuildingSideView';
-import FloorPlan from '@/components/FloorPlan';
-import RoomDetails from '@/components/RoomDetails';
-import Analytics from '@/components/Analytics';
-import { SearchBar } from '@/components/SearchBar';
-import { Toaster } from '@/components/ui/toaster';
-import { TooltipProvider } from '@/components/ui/tooltip';
-import { useToast } from '@/hooks/use-toast';
-import { useBuildingData } from '@/hooks/useBuildingData';
-import { Building, Floor, Room } from '@/types';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
-import { RoomSettingsDialog } from '@/components/RoomSettingsDialog';
+import { useState } from "react";
+import { ThemeProvider } from "@/components/ThemeProvider";
+import Layout from "@/components/Layout";
+import Dashboard from "@/components/Dashboard";
+import FloorPlan from "@/components/FloorPlan";
+import RoomDetails from "@/components/RoomDetails";
+import Analytics from "@/components/Analytics";
+import { SearchBar } from "@/components/SearchBar";
+import { Toaster } from "@/components/ui/toaster";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { useToast } from "@/hooks/use-toast";
+import { useBuildingData } from "@/hooks/useBuildingData";
+import { Building, Floor, Room } from "@/types";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
+import { RoomSettingsDialog } from "@/components/RoomSettingsDialog";
 
-type View = 'dashboard' | 'floors' | 'analytics';
+type View = "dashboard" | "floors" | "analytics";
 
 function App() {
   const { building, searchRooms, updateRoom } = useBuildingData();
   const [selectedFloor, setSelectedFloor] = useState<Floor | null>(null);
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [currentView, setCurrentView] = useState<View>('dashboard');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [currentView, setCurrentView] = useState<View>("dashboard");
   const [showSettings, setShowSettings] = useState(false);
   const { toast } = useToast();
 
@@ -39,8 +38,8 @@ function App() {
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    
-    if (query.trim() === '') {
+
+    if (query.trim() === "") {
       return;
     }
 
@@ -48,6 +47,13 @@ function App() {
     if (results.room) {
       setSelectedFloor(results.floor);
       setSelectedRoom(results.room);
+      setCurrentView("floors"); // Switch to floors view when search finds something
+    } else {
+      toast({
+        title: "Miestnosť nenájdená",
+        description: "Skúste iný vyhľadávací termín.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -68,73 +74,65 @@ function App() {
 
   const renderView = () => {
     switch (currentView) {
-      case 'dashboard':
+      case "dashboard":
         return (
-          <Dashboard 
-            onManageFloors={() => setCurrentView('floors')}
-            onShowAnalytics={() => setCurrentView('analytics')}
+          <Dashboard
+            onManageFloors={() => setCurrentView("floors")}
+            onShowAnalytics={() => setCurrentView("analytics")}
           />
         );
-      case 'floors':
+      case "floors":
         return (
           <div className="flex flex-col h-full w-full">
             <div className="p-4 border-b">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setCurrentView('dashboard')}
-                className="gap-2"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Späť na nástenku
-              </Button>
-            </div>
-            <div className="flex flex-1">
-              <TooltipProvider>
-                <BuildingSideView 
-                  building={building} 
-                  selectedFloor={selectedFloor} 
-                  onFloorSelect={handleFloorSelect} 
-                />
-              </TooltipProvider>
-              <div className="flex-1 flex flex-col h-full">
-                <div className="p-4 border-b shrink-0">
+              <div className="flex items-center gap-4">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setCurrentView("dashboard")}
+                  className="gap-2"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  Späť na nástenku
+                </Button>
+                <div className="flex-1">
                   <SearchBar onSearch={handleSearch} />
-                </div>
-                <div className="flex-1 relative">
-                  {selectedFloor && (
-                    <FloorPlan 
-                      floor={selectedFloor} 
-                      selectedRoom={selectedRoom}
-                      onRoomSelect={handleRoomSelect} 
-                    />
-                  )}
-                  {selectedRoom && (
-                    <RoomDetails 
-                      room={selectedRoom} 
-                      onClose={handleCloseRoomDetails}
-                    />
-                  )}
-                  <RoomSettingsDialog
-                    room={selectedRoom}
-                    open={showSettings}
-                    onOpenChange={setShowSettings}
-                    onSave={handleSaveSettings}
-                    onShowAnalytics={() => setCurrentView('analytics')}
-                  />
                 </div>
               </div>
             </div>
+            <div className="flex-1 relative">
+              <FloorPlan
+                building={building}
+                floor={selectedFloor}
+                selectedRoom={selectedRoom}
+                onRoomSelect={handleRoomSelect}
+                onFloorSelect={handleFloorSelect}
+                searchQuery={searchQuery}
+              />
+              {selectedRoom && (
+                <RoomDetails
+                  room={selectedRoom}
+                  onClose={handleCloseRoomDetails}
+                />
+              )}
+              <RoomSettingsDialog
+                room={selectedRoom}
+                open={showSettings}
+                onOpenChange={setShowSettings}
+                onSave={handleSaveSettings}
+                onShowAnalytics={() => setCurrentView("analytics")}
+              />
+            </div>
           </div>
         );
-      case 'analytics':
+      case "analytics":
         return (
           <div className="flex flex-col h-full w-full">
             <div className="p-4 border-b">
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setCurrentView('dashboard')}
+                onClick={() => setCurrentView("dashboard")}
                 className="gap-2"
               >
                 <ArrowLeft className="h-4 w-4" />

@@ -1,15 +1,36 @@
 import { useState, useEffect } from "react";
-import { Floor, Room } from "@/types";
+import { Floor, Room, Building } from "@/types";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "@/lib/motion";
 import { Badge } from "@/components/ui/badge";
-import { Info, Thermometer, Wind, Droplets, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Lightbulb,
+  Thermometer,
+  Wind,
+  Droplets,
+  Activity,
+  Search,
+  ZoomIn,
+  ZoomOut,
+  RotateCcw,
+} from "lucide-react";
 
 interface FloorPlanProps {
+  building: Building;
   floor: Floor | null;
   selectedRoom: Room | null;
   onRoomSelect: (room: Room) => void;
+  onFloorSelect: (floor: Floor) => void;
+  searchQuery?: string;
 }
 
 type MetricType = "temperature" | "co2" | "humidity" | "movement";
@@ -42,9 +63,9 @@ const METRICS: Record<MetricType, MetricConfig> = {
     id: "temperature",
     name: "Teplota",
     icon: <Thermometer className="h-4 w-4" />,
-    unit: "°F",
-    minValue: 60,
-    maxValue: 80,
+    unit: "°C",
+    minValue: 18,
+    maxValue: 26,
     colors: {
       excellent: "#22c55e",
       good: "#3b82f6",
@@ -129,9 +150,12 @@ const METRICS: Record<MetricType, MetricConfig> = {
 };
 
 export default function FloorPlan({
+  building,
   floor,
   selectedRoom,
   onRoomSelect,
+  onFloorSelect,
+  searchQuery = "",
 }: FloorPlanProps) {
   const [scale, setScale] = useState(0.8);
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -139,6 +163,9 @@ export default function FloorPlan({
   const [startPosition, setStartPosition] = useState({ x: 0, y: 0 });
   const [selectedMetric, setSelectedMetric] =
     useState<MetricType>("temperature");
+
+  // Sort floors by level (highest first)
+  const sortedFloors = [...building.floors].sort((a, b) => b.level - a.level);
 
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault();
@@ -175,6 +202,19 @@ export default function FloorPlan({
     onRoomSelect(room);
   };
 
+  const handleZoomIn = () => {
+    setScale((prev) => Math.min(prev + 0.2, 3));
+  };
+
+  const handleZoomOut = () => {
+    setScale((prev) => Math.max(prev - 0.2, 0.3));
+  };
+
+  const handleReset = () => {
+    setScale(0.8);
+    setPosition({ x: 0, y: 0 });
+  };
+
   // Calculate floor dimensions to fit all rooms
   const getFloorDimensions = (floor: Floor) => {
     if (!floor.rooms.length)
@@ -189,7 +229,7 @@ export default function FloorPlan({
     });
 
     return {
-      width: Math.max(maxX + 50, floor.width), // Add padding
+      width: Math.max(maxX + 50, floor.width),
       height: Math.max(maxY + 50, floor.height),
     };
   };
@@ -216,7 +256,7 @@ export default function FloorPlan({
 
     switch (metric) {
       case "temperature":
-        return room.temperature;
+        return Math.round((((room.temperature - 32) * 5) / 9) * 10) / 10; // Convert F to C
       case "co2":
         return 350 + (hash % 400);
       case "humidity":
@@ -373,78 +413,124 @@ export default function FloorPlan({
     return windows;
   };
 
-  // Function to render single ceiling light
+  // Function to render light bulb
   const renderLight = (room: Room) => {
-    const lightSize = 16;
+    const lightSize = 20;
     const x = room.width / 2 - lightSize / 2;
     const y = room.height / 2 - lightSize / 2 + 30;
 
     return (
       <g key={`light-${room.id}`} className="light-fixture">
+        {/* Light glow effect */}
         <circle
           cx={x + lightSize / 2}
           cy={y + lightSize / 2}
-          r={lightSize * 2.5}
+          r={lightSize * 2}
           fill="url(#lightGlow)"
-          opacity="0.4"
+          opacity="0.3"
         />
+
+        {/* Bulb base (screw threads) */}
+        <rect
+          x={x + 6}
+          y={y + lightSize - 2}
+          width={8}
+          height={6}
+          fill="#C0C0C0"
+          stroke="#999"
+          strokeWidth="0.5"
+        />
+
+        {/* Screw thread lines */}
+        <line
+          x1={x + 6}
+          y1={y + lightSize}
+          x2={x + 14}
+          y2={y + lightSize}
+          stroke="#999"
+          strokeWidth="0.5"
+        />
+        <line
+          x1={x + 6}
+          y1={y + lightSize + 2}
+          x2={x + 14}
+          y2={y + lightSize + 2}
+          stroke="#999"
+          strokeWidth="0.5"
+        />
+
+        {/* Bulb glass */}
         <circle
           cx={x + lightSize / 2}
-          cy={y + lightSize / 2}
-          r={lightSize / 2}
-          fill="#FFE135"
-          stroke="#FFC107"
-          strokeWidth="2"
+          cy={y + lightSize / 2 - 2}
+          r={lightSize / 2 - 2}
+          fill="#FFF8DC"
+          stroke="#FFD700"
+          strokeWidth="1.5"
         />
+
+        {/* Filament */}
+        <path
+          d={`M ${x + 6} ${y + 6} Q ${x + 10} ${y + 4} ${x + 14} ${y + 6} Q ${
+            x + 10
+          } ${y + 12} ${x + 6} ${y + 10}`}
+          fill="none"
+          stroke="#FF6B35"
+          strokeWidth="1"
+          opacity="0.8"
+        />
+
+        {/* Highlight on bulb */}
         <circle
           cx={x + lightSize / 2 - 3}
-          cy={y + lightSize / 2 - 3}
-          r={lightSize / 5}
+          cy={y + lightSize / 2 - 5}
+          r={3}
           fill="white"
-          opacity="0.9"
+          opacity="0.6"
         />
-        <g opacity="0.6">
-          <line
-            x1={x + lightSize / 2}
-            y1={y - 5}
-            x2={x + lightSize / 2}
-            y2={y - 15}
-            stroke="#FFE135"
-            strokeWidth="2"
-          />
-          <line
-            x1={x + lightSize / 2}
-            y1={y + lightSize + 5}
-            x2={x + lightSize / 2}
-            y2={y + lightSize + 15}
-            stroke="#FFE135"
-            strokeWidth="2"
-          />
-          <line
-            x1={x - 5}
-            y1={y + lightSize / 2}
-            x2={x - 15}
-            y2={y + lightSize / 2}
-            stroke="#FFE135"
-            strokeWidth="2"
-          />
-          <line
-            x1={x + lightSize + 5}
-            y1={y + lightSize / 2}
-            x2={x + lightSize + 15}
-            y2={y + lightSize / 2}
-            stroke="#FFE135"
-            strokeWidth="2"
-          />
-        </g>
       </g>
+    );
+  };
+
+  // Check if room matches search query
+  const isRoomHighlighted = (room: Room) => {
+    if (!searchQuery.trim()) return false;
+    const query = searchQuery.toLowerCase();
+    return (
+      room.name.toLowerCase().includes(query) ||
+      room.type.toLowerCase().includes(query)
     );
   };
 
   if (!floor) {
     return (
-      <div className="flex-1 flex items-center justify-center p-8 text-muted-foreground">
-        Vyberte poschodie pre zobrazenie plánu
+      <div className="flex-1 flex flex-col items-center justify-center p-8 text-muted-foreground">
+        <div className="text-center space-y-4">
+          <Search className="h-12 w-12 mx-auto opacity-50" />
+          <div>
+            <h3 className="text-lg font-medium">Vyberte poschodie</h3>
+            <p className="text-sm">
+              Začnite výberom poschodia pre zobrazenie plánu miestností
+            </p>
+          </div>
+          <Select
+            onValueChange={(value) => {
+              const selectedFloor = building.floors.find((f) => f.id === value);
+              if (selectedFloor) onFloorSelect(selectedFloor);
+            }}
+          >
+            <SelectTrigger className="w-64">
+              <SelectValue placeholder="Vybrať poschodie..." />
+            </SelectTrigger>
+            <SelectContent>
+              {sortedFloors.map((floorOption) => (
+                <SelectItem key={floorOption.id} value={floorOption.id}>
+                  {floorOption.name} (Úroveň {floorOption.level})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
     );
   }
@@ -461,7 +547,7 @@ export default function FloorPlan({
             width: 100%;
             height: 100%;
             overflow: hidden;
-            background-color: #f9fafb;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
           }
           
           .light-fixture {
@@ -473,7 +559,7 @@ export default function FloorPlan({
               opacity: 1; 
             }
             50% { 
-              opacity: 0.8; 
+              opacity: 0.9; 
             }
           }
           
@@ -484,6 +570,7 @@ export default function FloorPlan({
           
           .room-clickable:hover {
             filter: brightness(1.05);
+            stroke-width: 2;
           }
           
           .draggable-container {
@@ -494,6 +581,21 @@ export default function FloorPlan({
           
           .draggable-container:active {
             cursor: grabbing;
+          }
+          
+          .highlighted-room {
+            animation: highlight-pulse 2s ease-in-out infinite;
+          }
+          
+          @keyframes highlight-pulse {
+            0%, 100% { 
+              stroke-width: 3;
+              stroke: #3b82f6;
+            }
+            50% { 
+              stroke-width: 5;
+              stroke: #1d4ed8;
+            }
           }
         `}
       </style>
@@ -510,64 +612,152 @@ export default function FloorPlan({
           </defs>
         </svg>
 
-        {/* Floor Info */}
-        <div className="absolute top-4 left-4 z-10 bg-background/90 backdrop-blur-sm p-3 rounded-lg border shadow-sm">
-          <h2 className="font-semibold text-lg">{floor.name}</h2>
-          <p className="text-sm text-muted-foreground">Úroveň {floor.level}</p>
-        </div>
-
-        {/* Metric Selector */}
-        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-10 bg-background/90 backdrop-blur-sm p-2 rounded-lg border shadow-sm">
-          <div className="flex gap-1">
-            {Object.values(METRICS).map((metric) => (
-              <Button
-                key={metric.id}
-                variant={selectedMetric === metric.id ? "default" : "outline"}
-                size="sm"
-                className="flex items-center gap-2 min-w-[80px]"
-                onClick={() => setSelectedMetric(metric.id)}
+        {/* Left Sidebar - Controls */}
+        <Card className="absolute top-4 left-4 z-10 w-64 bg-background/95 backdrop-blur-sm shadow-lg">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium">
+              Ovládanie plánu
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Floor Selection */}
+            <div className="space-y-2">
+              <label className="text-xs font-medium text-muted-foreground">
+                Poschodie
+              </label>
+              <Select
+                value={floor.id}
+                onValueChange={(value) => {
+                  const selectedFloor = building.floors.find(
+                    (f) => f.id === value
+                  );
+                  if (selectedFloor) onFloorSelect(selectedFloor);
+                }}
               >
-                {metric.icon}
-                <span className="hidden sm:inline">{metric.name}</span>
-              </Button>
-            ))}
-          </div>
-        </div>
+                <SelectTrigger className="h-8">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {sortedFloors.map((floorOption) => (
+                    <SelectItem key={floorOption.id} value={floorOption.id}>
+                      {floorOption.name} (Úroveň {floorOption.level})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-        {/* Legend */}
-        <div className="absolute top-4 right-4 z-10 bg-background/90 backdrop-blur-sm p-3 rounded-lg border shadow-sm">
-          <div className="flex items-center gap-2 mb-2">
-            {currentMetric.icon}
-            <span className="text-sm font-medium">{currentMetric.name}</span>
-          </div>
-          <div className="space-y-1">
-            <div className="flex items-center gap-2 text-xs">
-              <div
-                className="w-3 h-3 rounded"
-                style={{ backgroundColor: currentMetric.colors.excellent }}
-              ></div>
-              <span>Výborné</span>
-              <div
-                className="w-3 h-3 rounded ml-2"
-                style={{ backgroundColor: currentMetric.colors.good }}
-              ></div>
-              <span>Dobré</span>
+            {/* Metric Selection */}
+            <div className="space-y-2">
+              <label className="text-xs font-medium text-muted-foreground">
+                Zobrazovaná metrika
+              </label>
+              <div className="grid grid-cols-2 gap-1">
+                {Object.values(METRICS).map((metric) => (
+                  <Button
+                    key={metric.id}
+                    variant={
+                      selectedMetric === metric.id ? "default" : "outline"
+                    }
+                    size="sm"
+                    className="h-8 text-xs"
+                    onClick={() => setSelectedMetric(metric.id)}
+                  >
+                    {metric.icon}
+                    <span className="ml-1">{metric.name}</span>
+                  </Button>
+                ))}
+              </div>
             </div>
-            <div className="flex items-center gap-2 text-xs">
-              <div
-                className="w-3 h-3 rounded"
-                style={{ backgroundColor: currentMetric.colors.fair }}
-              ></div>
-              <span>Prijateľné</span>
-              <div
-                className="w-3 h-3 rounded ml-2"
-                style={{ backgroundColor: currentMetric.colors.poor }}
-              ></div>
-              <span>Zlé</span>
+
+            {/* Zoom Controls */}
+            <div className="space-y-2">
+              <label className="text-xs font-medium text-muted-foreground">
+                Zoom a navigácia
+              </label>
+              <div className="flex gap-1">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleZoomIn}
+                  className="h-8"
+                >
+                  <ZoomIn className="h-3 w-3" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleZoomOut}
+                  className="h-8"
+                >
+                  <ZoomOut className="h-3 w-3" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleReset}
+                  className="h-8"
+                >
+                  <RotateCcw className="h-3 w-3" />
+                </Button>
+              </div>
+              <div className="text-xs text-muted-foreground">
+                Zoom: {Math.round(scale * 100)}%
+              </div>
             </div>
-          </div>
-          <div className="mt-2 text-xs text-muted-foreground">
-            Mierka: {Math.round(scale * 100)}% | Scrollujte pre zoom
+
+            {/* Legend */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                {currentMetric.icon}
+                <span className="text-xs font-medium">
+                  {currentMetric.name} ({currentMetric.unit})
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-1 text-xs">
+                <div className="flex items-center gap-1">
+                  <div
+                    className="w-3 h-3 rounded"
+                    style={{ backgroundColor: currentMetric.colors.excellent }}
+                  ></div>
+                  <span>Výborné</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div
+                    className="w-3 h-3 rounded"
+                    style={{ backgroundColor: currentMetric.colors.good }}
+                  ></div>
+                  <span>Dobré</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div
+                    className="w-3 h-3 rounded"
+                    style={{ backgroundColor: currentMetric.colors.fair }}
+                  ></div>
+                  <span>Prijateľné</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div
+                    className="w-3 h-3 rounded"
+                    style={{ backgroundColor: currentMetric.colors.poor }}
+                  ></div>
+                  <span>Zlé</span>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Floor Info */}
+        <div className="absolute top-4 right-4 z-10 bg-background/95 backdrop-blur-sm p-3 rounded-lg border shadow-sm">
+          <h2 className="font-semibold text-lg">{floor.name}</h2>
+          <div className="text-sm text-muted-foreground space-y-1">
+            <div>Úroveň {floor.level}</div>
+            <div>{floor.rooms.length} miestností</div>
+            <div className="flex items-center gap-1">
+              <Lightbulb className="h-3 w-3" />
+              <span>= Osvetlenie</span>
+            </div>
           </div>
         </div>
 
@@ -616,6 +806,7 @@ export default function FloorPlan({
                   );
                   const roomColor = currentMetric.colors[category];
                   const roomBackground = currentMetric.backgrounds[category];
+                  const isHighlighted = isRoomHighlighted(room);
 
                   return (
                     <g key={room.id} className="room-group">
@@ -627,10 +818,23 @@ export default function FloorPlan({
                         height={room.height - wallThickness}
                         fill={roomBackground}
                         stroke={
-                          selectedRoom?.id === room.id ? "#3b82f6" : roomColor
+                          selectedRoom?.id === room.id
+                            ? "#1d4ed8"
+                            : isHighlighted
+                            ? "#3b82f6"
+                            : roomColor
                         }
-                        strokeWidth={selectedRoom?.id === room.id ? "3" : "1.5"}
-                        className="room-clickable"
+                        strokeWidth={
+                          selectedRoom?.id === room.id
+                            ? "4"
+                            : isHighlighted
+                            ? "3"
+                            : "1.5"
+                        }
+                        className={cn(
+                          "room-clickable",
+                          isHighlighted && "highlighted-room"
+                        )}
                         onClick={(e) => handleRoomClick(room, e as any)}
                       />
 
@@ -682,7 +886,7 @@ export default function FloorPlan({
                         {renderDoors(room)}
                       </g>
 
-                      {/* Single ceiling light */}
+                      {/* Light bulb */}
                       <g
                         className="lights"
                         transform={`translate(${room.x}, ${room.y})`}
