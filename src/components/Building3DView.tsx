@@ -13,7 +13,10 @@ import {
   Info,
   Home,
   Layers,
-  RotateCcw,
+  Wifi,
+  Activity,
+  Lightbulb,
+  Wind,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -24,7 +27,7 @@ interface Building3DViewProps {
   className?: string;
 }
 
-// Simple Box component
+// Simplified Box component
 function SimpleBox({
   position,
   args,
@@ -32,7 +35,8 @@ function SimpleBox({
   onClick,
   onPointerOver,
   onPointerOut,
-  opacity = 0.7,
+  opacity = 0.8,
+  isSelected = false,
 }: {
   position: [number, number, number];
   args: [number, number, number];
@@ -41,27 +45,248 @@ function SimpleBox({
   onPointerOver?: () => void;
   onPointerOut?: () => void;
   opacity?: number;
+  isSelected?: boolean;
 }) {
   const meshRef = useRef<THREE.Mesh>(null);
+  const [hovered, setHovered] = useState(false);
+
+  const handlePointerOver = (e: any) => {
+    e.stopPropagation();
+    setHovered(true);
+    onPointerOver?.();
+    document.body.style.cursor = "pointer";
+  };
+
+  const handlePointerOut = (e: any) => {
+    e.stopPropagation();
+    setHovered(false);
+    onPointerOut?.();
+    document.body.style.cursor = "default";
+  };
+
+  const handleClick = (e: any) => {
+    e.stopPropagation();
+    onClick?.();
+  };
 
   return (
     <mesh
       ref={meshRef}
       position={position}
-      onClick={onClick}
-      onPointerOver={onPointerOver}
-      onPointerOut={onPointerOut}
+      onClick={handleClick}
+      onPointerOver={handlePointerOver}
+      onPointerOut={handlePointerOut}
     >
       <boxGeometry args={args} />
-      <meshStandardMaterial color={color} transparent opacity={opacity} />
+      <meshStandardMaterial
+        color={color}
+        transparent
+        opacity={hovered || isSelected ? 0.9 : opacity}
+        emissive={
+          isSelected ? new THREE.Color(0x004444) : new THREE.Color(0x000000)
+        }
+        emissiveIntensity={isSelected ? 0.2 : 0}
+      />
+      {/* Wireframe for selected room */}
+      {isSelected && (
+        <lineSegments>
+          <edgesGeometry args={[new THREE.BoxGeometry(...args)]} />
+          <lineBasicMaterial color="#ffffff" linewidth={2} />
+        </lineSegments>
+      )}
     </mesh>
   );
 }
 
-// Temperature color function
+// Simple IoT Sensor component
+function IoTSensor({
+  position,
+  type,
+  active = true,
+}: {
+  position: [number, number, number];
+  type: "temperature" | "air_quality" | "occupancy" | "light";
+  active?: boolean;
+}) {
+  const meshRef = useRef<THREE.Mesh>(null);
+  const [hovered, setHovered] = useState(false);
+
+  useFrame((state) => {
+    if (meshRef.current && active) {
+      meshRef.current.rotation.y = state.clock.elapsedTime * 0.5;
+    }
+  });
+
+  const getSensorColor = () => {
+    switch (type) {
+      case "temperature":
+        return active ? "#ef4444" : "#666666";
+      case "air_quality":
+        return active ? "#22c55e" : "#666666";
+      case "occupancy":
+        return active ? "#3b82f6" : "#666666";
+      case "light":
+        return active ? "#f59e0b" : "#666666";
+      default:
+        return "#666666";
+    }
+  };
+
+  return (
+    <group>
+      <mesh
+        ref={meshRef}
+        position={position}
+        onPointerOver={() => setHovered(true)}
+        onPointerOut={() => setHovered(false)}
+      >
+        <cylinderGeometry args={[0.05, 0.05, 0.1, 8]} />
+        <meshStandardMaterial
+          color={getSensorColor()}
+          emissive={new THREE.Color(getSensorColor())}
+          emissiveIntensity={active ? 0.3 : 0}
+        />
+      </mesh>
+
+      {hovered && (
+        <Html position={[position[0], position[1] + 0.3, position[2]]}>
+          <div className="bg-black/80 text-white px-2 py-1 rounded text-xs whitespace-nowrap">
+            {type.replace("_", " ").toUpperCase()}
+          </div>
+        </Html>
+      )}
+    </group>
+  );
+}
+
+// Floor component
+function Floor3D({
+  floor,
+  floorIndex,
+  selectedRoom,
+  onRoomSelect,
+  showLabels,
+  showSensors,
+}: {
+  floor: Floor;
+  floorIndex: number;
+  selectedRoom?: Room | null;
+  onRoomSelect?: (room: Room) => void;
+  showLabels: boolean;
+  showSensors: boolean;
+}) {
+  const floorY = floorIndex * 3;
+
+  return (
+    <group>
+      {/* Floor base */}
+      <mesh position={[0, floorY - 0.05, 0]}>
+        <boxGeometry args={[10, 0.1, 8]} />
+        <meshStandardMaterial color="#f1f5f9" />
+      </mesh>
+
+      {/* Floor label */}
+      {showLabels && (
+        <Text
+          position={[-5.5, floorY + 0.5, 0]}
+          fontSize={0.3}
+          color="#1f2937"
+          anchorX="center"
+          anchorY="middle"
+          rotation={[0, Math.PI / 2, 0]}
+        >
+          {floor.name}
+        </Text>
+      )}
+
+      {/* Rooms */}
+      {floor.rooms.map((room) => {
+        const temperature = getRoomTemperature(room);
+        const tempColor = getTemperatureColor(temperature);
+        const roomWidth = room.width / 100;
+        const roomDepth = room.height / 80;
+        const roomHeight = 0.25;
+
+        const roomPosition: [number, number, number] = [
+          room.x / 100 - 5 + roomWidth / 2,
+          floorY + roomHeight / 2,
+          room.y / 80 - 4 + roomDepth / 2,
+        ];
+
+        return (
+          <group key={room.id}>
+            <SimpleBox
+              position={roomPosition}
+              args={[roomWidth, roomHeight, roomDepth]}
+              color={tempColor}
+              opacity={0.7}
+              isSelected={selectedRoom?.id === room.id}
+              onClick={() => onRoomSelect?.(room)}
+            />
+
+            {/* Room label */}
+            {showLabels && (
+              <Text
+                position={[
+                  roomPosition[0],
+                  roomPosition[1] + 0.3,
+                  roomPosition[2],
+                ]}
+                fontSize={0.1}
+                color="#1f2937"
+                anchorX="center"
+                anchorY="middle"
+              >
+                {room.name}
+              </Text>
+            )}
+
+            {/* IoT Sensors */}
+            {showSensors && (
+              <group>
+                <IoTSensor
+                  position={[
+                    roomPosition[0] - roomWidth / 4,
+                    roomPosition[1] + 0.3,
+                    roomPosition[2] - roomDepth / 4,
+                  ]}
+                  type="temperature"
+                  active={true}
+                />
+
+                <IoTSensor
+                  position={[
+                    roomPosition[0] + roomWidth / 4,
+                    roomPosition[1] + 0.3,
+                    roomPosition[2] - roomDepth / 4,
+                  ]}
+                  type="air_quality"
+                  active={room.currentOccupancy > 0}
+                />
+
+                {room.currentOccupancy > 0 && (
+                  <IoTSensor
+                    position={[
+                      roomPosition[0],
+                      roomPosition[1] + 0.4,
+                      roomPosition[2],
+                    ]}
+                    type="occupancy"
+                    active={true}
+                  />
+                )}
+              </group>
+            )}
+          </group>
+        );
+      })}
+    </group>
+  );
+}
+
+// Temperature utility functions
 const getTemperatureColor = (temperature: number): string => {
   const tempC = ((temperature - 32) * 5) / 9;
-
   if (tempC <= 18) return "#3b82f6";
   if (tempC <= 20) return "#06b6d4";
   if (tempC <= 22) return "#10b981";
@@ -82,151 +307,22 @@ const getRoomTemperature = (room: Room): number => {
       Amenity: 1,
       "Break Room": 2,
     }[room.type] || 0;
-
   return baseTemp + occupancyFactor + typeAdjustment;
 };
 
-// Room component
-function Room3D({
-  room,
-  floorY,
-  selectedRoom,
-  onRoomSelect,
-  showLabels,
-}: {
-  room: Room;
-  floorY: number;
-  selectedRoom?: Room | null;
-  onRoomSelect?: (room: Room) => void;
-  showLabels: boolean;
-}) {
-  const [hovered, setHovered] = useState(false);
-  const temperature = getRoomTemperature(room);
-  const tempColor = getTemperatureColor(temperature);
-  const tempColorCelsius = Math.round(((temperature - 32) * 5) / 9);
-
-  // Scale room to fit building
-  const roomWidth = room.width / 100;
-  const roomDepth = room.height / 80;
-  const roomHeight = 0.2;
-
-  const position: [number, number, number] = [
-    room.x / 100 - 5 + roomWidth / 2,
-    floorY + roomHeight / 2,
-    room.y / 80 - 4 + roomDepth / 2,
-  ];
-
-  const isSelected = selectedRoom?.id === room.id;
-
-  return (
-    <group>
-      {/* Room box */}
-      <SimpleBox
-        position={position}
-        args={[roomWidth, roomHeight, roomDepth]}
-        color={tempColor}
-        opacity={isSelected ? 0.9 : hovered ? 0.8 : 0.7}
-        onClick={() => onRoomSelect?.(room)}
-        onPointerOver={() => setHovered(true)}
-        onPointerOut={() => setHovered(false)}
-      />
-
-      {/* Labels */}
-      {showLabels && (
-        <Text
-          position={[position[0], position[1] + 0.3, position[2]]}
-          fontSize={0.15}
-          color="#1f2937"
-          anchorX="center"
-          anchorY="middle"
-        >
-          {room.name}
-        </Text>
-      )}
-
-      {/* Hover tooltip */}
-      {hovered && (
-        <Html position={[position[0], position[1] + 0.6, position[2]]}>
-          <div className="bg-white/95 backdrop-blur-sm p-2 rounded border shadow-lg text-xs max-w-48">
-            <div className="font-semibold">{room.name}</div>
-            <div className="text-gray-600">{room.type}</div>
-            <div>Teplota: {tempColorCelsius}°C</div>
-            <div>
-              Obsadenosť: {room.currentOccupancy}/{room.capacity}
-            </div>
-          </div>
-        </Html>
-      )}
-    </group>
-  );
-}
-
-// Floor component
-function Floor3D({
-  floor,
-  floorIndex,
-  selectedRoom,
-  onRoomSelect,
-  showLabels,
-}: {
-  floor: Floor;
-  floorIndex: number;
-  selectedRoom?: Room | null;
-  onRoomSelect?: (room: Room) => void;
-  showLabels: boolean;
-}) {
-  const floorY = floorIndex * 3;
-
-  return (
-    <group>
-      {/* Floor base */}
-      <SimpleBox
-        position={[0, floorY, 0]}
-        args={[10, 0.1, 8]}
-        color="#e2e8f0"
-        opacity={0.6}
-      />
-
-      {/* Floor label */}
-      {showLabels && (
-        <Text
-          position={[-6, floorY + 0.5, 0]}
-          fontSize={0.3}
-          color="#1f2937"
-          anchorX="center"
-          anchorY="middle"
-          rotation={[0, Math.PI / 2, 0]}
-        >
-          {floor.name}
-        </Text>
-      )}
-
-      {/* Rooms */}
-      {floor.rooms.map((room) => (
-        <Room3D
-          key={room.id}
-          room={room}
-          floorY={floorY}
-          selectedRoom={selectedRoom}
-          onRoomSelect={onRoomSelect}
-          showLabels={showLabels}
-        />
-      ))}
-    </group>
-  );
-}
-
-// Main scene
+// Scene component
 function Scene({
   building,
   selectedRoom,
   onRoomSelect,
   showLabels,
+  showSensors,
 }: {
   building: Building;
   selectedRoom?: Room | null;
   onRoomSelect?: (room: Room) => void;
   showLabels: boolean;
+  showSensors: boolean;
 }) {
   const { camera } = useThree();
 
@@ -254,6 +350,7 @@ function Scene({
           selectedRoom={selectedRoom}
           onRoomSelect={onRoomSelect}
           showLabels={showLabels}
+          showSensors={showSensors}
         />
       ))}
 
@@ -270,27 +367,13 @@ function Scene({
   );
 }
 
-// Loading component
+// Simple loading component
 function LoadingFallback() {
   return (
     <div className="flex items-center justify-center h-full">
       <div className="text-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
         <p className="text-sm text-muted-foreground">Načítavam 3D model...</p>
-      </div>
-    </div>
-  );
-}
-
-// Error boundary component
-function ErrorFallback() {
-  return (
-    <div className="flex items-center justify-center h-full">
-      <div className="text-center">
-        <div className="text-red-500 mb-2">⚠️</div>
-        <p className="text-sm text-muted-foreground">
-          Chyba pri načítaní 3D modelu. Skúste obnoviť stránku.
-        </p>
       </div>
     </div>
   );
@@ -304,7 +387,8 @@ export default function Building3DView({
   className,
 }: Building3DViewProps) {
   const [showLabels, setShowLabels] = useState(true);
-  const [error, setError] = useState(false);
+  const [showSensors, setShowSensors] = useState(true);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   const temperatureRanges = [
     { range: "< 18°C", color: "#3b82f6", label: "Studeno" },
@@ -315,21 +399,45 @@ export default function Building3DView({
     { range: "> 26°C", color: "#ef4444", label: "Veľmi horúco" },
   ];
 
-  // Error boundary
-  useEffect(() => {
-    const handleError = () => setError(true);
-    window.addEventListener("error", handleError);
-    return () => window.removeEventListener("error", handleError);
-  }, []);
+  const sensorTypes = [
+    {
+      type: "temperature",
+      icon: <Thermometer className="h-4 w-4" />,
+      label: "Teplota",
+      color: "#ef4444",
+    },
+    {
+      type: "air_quality",
+      icon: <Wind className="h-4 w-4" />,
+      label: "Kvalita vzduchu",
+      color: "#22c55e",
+    },
+    {
+      type: "occupancy",
+      icon: <Activity className="h-4 w-4" />,
+      label: "Obsadenosť",
+      color: "#3b82f6",
+    },
+    {
+      type: "light",
+      icon: <Lightbulb className="h-4 w-4" />,
+      label: "Osvetlenie",
+      color: "#f59e0b",
+    },
+  ];
 
-  if (error) {
-    return <ErrorFallback />;
-  }
+  // Simulate loading delay
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoaded(true);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
     <div
       className={cn(
-        "flex flex-col h-full bg-gradient-to-br from-slate-50 to-slate-100",
+        "flex flex-col h-full bg-gradient-to-br from-slate-50 via-blue-50 to-cyan-50",
         className
       )}
     >
@@ -337,15 +445,22 @@ export default function Building3DView({
       <Card className="m-4 mb-2">
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-lg">
-            <Layers className="h-5 w-5" />
-            3D Model budovy - {building.name}
+            <Layers className="h-5 w-5 text-blue-600" />
+            Digitálne dvojča - {building.name}
+            <Badge
+              variant="outline"
+              className="ml-2 bg-green-50 text-green-700 border-green-200"
+            >
+              <div className="w-2 h-2 bg-green-500 rounded-full mr-1 animate-pulse"></div>
+              Live
+            </Badge>
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <Button
-                variant="outline"
+                variant={showLabels ? "default" : "outline"}
                 size="sm"
                 onClick={() => setShowLabels(!showLabels)}
                 className="gap-2"
@@ -357,6 +472,17 @@ export default function Building3DView({
                 )}
                 Popisky
               </Button>
+
+              <Button
+                variant={showSensors ? "default" : "outline"}
+                size="sm"
+                onClick={() => setShowSensors(!showSensors)}
+                className="gap-2"
+              >
+                <Wifi className="h-4 w-4" />
+                IoT Senzory
+              </Button>
+
               <Button variant="outline" size="sm" className="gap-2">
                 <Home className="h-4 w-4" />
                 {building.floors.length} poschodí
@@ -367,6 +493,7 @@ export default function Building3DView({
               <div className="flex items-center gap-2">
                 <Badge variant="secondary">Vybraté: {selectedRoom.name}</Badge>
                 <Badge variant="outline">
+                  <Thermometer className="h-3 w-3 mr-1" />
                   {Math.round(
                     ((getRoomTemperature(selectedRoom) - 32) * 5) / 9
                   )}
@@ -378,45 +505,75 @@ export default function Building3DView({
         </CardContent>
       </Card>
 
-      {/* Temperature Legend */}
-      <Card className="mx-4 mb-2">
-        <CardContent className="py-3">
-          <div className="flex items-center gap-2 mb-3">
-            <Info className="h-4 w-4" />
-            <span className="text-sm font-medium">Teplotná mapa:</span>
-          </div>
-          <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
-            {temperatureRanges.map((range, index) => (
-              <div key={index} className="flex items-center gap-2">
-                <div
-                  className="w-4 h-4 rounded"
-                  style={{ backgroundColor: range.color }}
-                />
-                <div className="text-xs">
-                  <div className="font-medium">{range.range}</div>
-                  <div className="text-muted-foreground">{range.label}</div>
+      <div className="flex gap-4 mx-4 mb-2">
+        {/* Temperature Legend */}
+        <Card className="flex-1">
+          <CardContent className="py-3">
+            <div className="flex items-center gap-2 mb-3">
+              <Thermometer className="h-4 w-4 text-orange-600" />
+              <span className="text-sm font-medium">Teplotná mapa:</span>
+            </div>
+            <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
+              {temperatureRanges.map((range, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <div
+                    className="w-4 h-4 rounded"
+                    style={{ backgroundColor: range.color }}
+                  />
+                  <div className="text-xs">
+                    <div className="font-medium">{range.range}</div>
+                    <div className="text-muted-foreground">{range.label}</div>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Sensor Types Legend */}
+        <Card className="flex-1">
+          <CardContent className="py-3">
+            <div className="flex items-center gap-2 mb-3">
+              <Wifi className="h-4 w-4 text-blue-600" />
+              <span className="text-sm font-medium">IoT Senzory:</span>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+              {sensorTypes.map((sensor, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <div
+                    className="w-4 h-4 rounded-full"
+                    style={{ backgroundColor: sensor.color }}
+                  />
+                  <div className="text-xs">
+                    <div className="font-medium">{sensor.label}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* 3D Canvas */}
       <div className="flex-1 mx-4 mb-4 border rounded-lg overflow-hidden bg-gradient-to-br from-sky-50 to-blue-50">
-        <Suspense fallback={<LoadingFallback />}>
+        {isLoaded ? (
           <Canvas
             camera={{ position: [15, 10, 15], fov: 50 }}
-            onError={() => setError(true)}
+            onCreated={() => console.log("Canvas created successfully")}
           >
-            <Scene
-              building={building}
-              selectedRoom={selectedRoom}
-              onRoomSelect={onRoomSelect}
-              showLabels={showLabels}
-            />
+            <Suspense fallback={null}>
+              <Scene
+                building={building}
+                selectedRoom={selectedRoom}
+                onRoomSelect={onRoomSelect}
+                showLabels={showLabels}
+                showSensors={showSensors}
+              />
+            </Suspense>
           </Canvas>
-        </Suspense>
+        ) : (
+          <LoadingFallback />
+        )}
       </div>
 
       {/* Instructions */}
