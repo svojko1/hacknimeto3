@@ -10,6 +10,7 @@ export default defineConfig({
     },
   },
   optimizeDeps: {
+    include: ['react', 'react-dom'],
     exclude: ['lucide-react'],
   },
   build: {
@@ -21,8 +22,16 @@ export default defineConfig({
         manualChunks: undefined,
       },
     },
+    // Add this to help with dependency resolution
+    commonjsOptions: {
+      include: [/node_modules/],
+    },
   },
   define: {
     global: 'globalThis',
-  }
+  },
+  // Add this to ensure proper module resolution
+  esbuild: {
+    target: 'esnext',
+  },
 });
