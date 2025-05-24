@@ -111,7 +111,7 @@ const Dashboard = ({
     prediction: {
       nextMonth: {
         amount: 1323,
-        confidence: 94,
+        confidence: 90,
         weather: "chladnejšie počasie",
         factors: [
           {
@@ -273,10 +273,10 @@ const Dashboard = ({
       energySaving: 15.2,
     },
     occupancy: {
-      current: 127,
-      capacity: 180,
+      current: 12,
+      capacity: 22,
       percentage: 71,
-      peak: 156,
+      peak: 19,
       areas: {
         entrance: { current: 18, capacity: 30, percentage: 60, status: "busy" },
         clientCenter: {
@@ -324,7 +324,7 @@ const Dashboard = ({
     },
     systems: {
       hvac: { status: "online", efficiency: 89, alert: false },
-      lighting: { status: "online", efficiency: 94, alert: false },
+      lighting: { status: "online", efficiency: 90, alert: false },
       security: { status: "online", efficiency: 100, alert: false },
       network: { status: "online", efficiency: 96, alert: false },
       waterSystem: { status: "warning", efficiency: 78, alert: true },
@@ -680,7 +680,6 @@ const Dashboard = ({
               <DialogContent className="max-w-6xl max-h-[80vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-2 text-xl">
-                    <span className="text-2xl">🥔👑</span>
                     {shameData.title}
                   </DialogTitle>
                   <p className="text-gray-600">{shameData.subtitle}</p>
@@ -700,7 +699,7 @@ const Dashboard = ({
                       </span>
                     </div>
                     <p className="text-sm text-orange-700">
-                      Týchto peniazmi by sme mohli kúpiť 2,563 kg zemiakov! 🥔
+                      Týmito peniazmi by sme mohli kúpiť 2,563 kg zemiakov! 🥔
                     </p>
                   </div>
 
@@ -779,37 +778,6 @@ const Dashboard = ({
                       ))}
                     </TableBody>
                   </Table>
-
-                  <div className="mt-6 p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border border-green-200">
-                    <h4 className="font-semibold text-green-800 mb-2 flex items-center gap-2">
-                      <Target className="h-5 w-5" />
-                      Plán nápravy pre najhorších "hriešnikov"
-                    </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <span className="font-medium text-green-700">
-                          Okamžité opatrenia:
-                        </span>
-                        <ul className="mt-1 space-y-1 text-green-600">
-                          <li>• Automatické vypínanie osvetlenia po 22:00</li>
-                          <li>
-                            • Zníženie teploty v neobývaných miestnostiach
-                          </li>
-                          <li>• Oprava tečúcich kohútikov</li>
-                        </ul>
-                      </div>
-                      <div>
-                        <span className="font-medium text-blue-700">
-                          Dlhodobé riešenia:
-                        </span>
-                        <ul className="mt-1 space-y-1 text-blue-600">
-                          <li>• Inštalácia pohybových senzorov</li>
-                          <li>• Automatické riadenie klimatizácie</li>
-                          <li>• Školenie zamestnancov o úsporách</li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
                 </div>
               </DialogContent>
             </Dialog>
@@ -1013,7 +981,7 @@ const Dashboard = ({
                     </span>
                   </div>
                   <p className="text-sm text-gray-600 mt-1">
-                    Aktuálna obsadenosť budovy
+                    Aktuálne obsadené miestnosti
                   </p>
                 </div>
                 <Progress
@@ -1022,7 +990,7 @@ const Dashboard = ({
                 />
                 <div className="bg-blue-50 p-2 rounded-lg">
                   <div className="text-xs text-blue-700 font-medium">
-                    📊 Denný peak: {buildingData.occupancy.peak} občanov
+                    📊 Denný peak: {buildingData.occupancy.peak} miestnosti
                   </div>
                 </div>
               </div>

@@ -130,7 +130,7 @@ function Room3D({
   // Scale rooms to fit within building bounds
   const roomWidth = Math.max(room.width / 100, 0.3);
   const roomDepth = Math.max(room.height / 100, 0.3);
-  const roomHeight = 0.15;
+  const roomHeight = 2.15;
 
   const roomPosition: [number, number, number] = [
     room.x / 100 - 5 + roomWidth / 2,
@@ -421,8 +421,10 @@ function Building3DFloor({
 
       {/* Floor label with 3D positioning */}
       {showLabels && (
-        <Html position={[-floorWidth / 2 - 1, floorY + floorHeight / 2, 0]}>
-          <div className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg transform -rotate-90 origin-center">
+        <Html
+          position={[-floorWidth / 2 + 0.5, floorY + 0.2, floorDepth / 2 + 0.5]}
+        >
+          <div className="bg-black/60 text-white text-xs px-2 py-1 rounded shadow-md backdrop-blur-sm min-w-max">
             <div className="font-bold text-sm text-center">{floor.name}</div>
             <div className="text-xs opacity-90 text-center">
               Level {floor.level}
