@@ -76,7 +76,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"; // <-- Added Select imports
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { NotificationDropdown } from "@/components/NotificationDropdown";
@@ -87,27 +87,596 @@ interface DashboardProps {
   onShow3D: () => void;
 }
 
-// --- Added: Define Available Buildings ---
+// --- Define Available Buildings ---
 const buildings = [
   {
     id: "ruzinov",
     name: "Mestský úrad Bratislava-Ružinov",
     address: "Mierová 21, Bratislava",
     yearBuilt: "1980",
+    area: "3,250 m²",
+    floors: 4,
   },
   {
     id: "stare_mesto",
     name: "Miestny úrad Bratislava-Staré Mesto",
     address: "Vajanského nábrežie 3, Bratislava",
     yearBuilt: "1902",
+    area: "4,500 m²",
+    floors: 5,
   },
   {
     id: "petrzalka",
     name: "Miestny úrad Bratislava-Petržalka",
     address: "Kutlíkova 17, Bratislava",
     yearBuilt: "1985",
+    area: "5,100 m²",
+    floors: 6,
   },
 ];
+
+// --- Added: Define Building-Specific Data ---
+const getBuildingSpecificData = (buildingId: string) => {
+  const buildingInfo =
+    buildings.find((b) => b.id === buildingId) || buildings[0];
+
+  switch (buildingId) {
+    case "stare_mesto":
+      return {
+        expenseData: {
+          today: {
+            current: 105.5,
+            currency: "€",
+            description: "Historická budova, vyššia spotreba",
+            breakdown: {
+              heating: 60.1,
+              lighting: 25.4,
+              ventilation: 12.0,
+              other: 8.0,
+            },
+          },
+          savings: {
+            theoretical: 15.2,
+            percentage: 12.8,
+            comparedTo: "starý model",
+            description: "Potenciál úspor po rekonštrukcii",
+          },
+          prediction: {
+            nextMonth: {
+              amount: 1550,
+              confidence: 85,
+              weather: "štandardná zima",
+              factors: [
+                {
+                  name: "Teplota",
+                  impact: "+12%",
+                  description: "Očakávaný pokles o 2-4°C",
+                },
+                {
+                  name: "Vlhkosť",
+                  impact: "+5%",
+                  description: "Zvýšená vlhkosť 60-70%",
+                },
+                {
+                  name: "Slnečné dni",
+                  impact: "-10%",
+                  description: "Menej slnečných hodín",
+                },
+                { name: "Vietor", impact: "+3%", description: "Mierny vietor" },
+              ],
+              breakdown: {
+                heating: 1800,
+                lighting: 750,
+                ventilation: 450,
+                other: 180,
+              },
+            },
+          },
+        },
+        buildingData: {
+          buildingInfo: { ...buildingInfo, lastRenovation: "Čiastočná 2005" },
+          temperature: {
+            average: 21.5,
+            target: 21.5,
+            range: { min: 18.5, max: 23.9 },
+            trend: 0.1,
+            rooms: { optimal: 18, warning: 6, critical: 2 },
+            energySaving: 8.5,
+          },
+          occupancy: {
+            current: 25,
+            capacity: 30,
+            percentage: 83,
+            peak: 28,
+            areas: {
+              entrance: {
+                current: 22,
+                capacity: 35,
+                percentage: 63,
+                status: "busy",
+              },
+              clientCenter: {
+                current: 30,
+                capacity: 40,
+                percentage: 75,
+                status: "optimal",
+              },
+              meetingRoom: {
+                current: 5,
+                capacity: 30,
+                percentage: 17,
+                status: "available",
+              },
+              offices: {
+                current: 85,
+                capacity: 80,
+                percentage: 106,
+                status: "overcrowded",
+              },
+            },
+          },
+          airQuality: {
+            co2: 550,
+            status: "moderate",
+            humidity: 48,
+            temperature: 21.5,
+            ventilationEfficiency: 82,
+          },
+          energy: {
+            current: 40.1,
+            target: 45.0,
+            saved: 10.9,
+            efficiency: 85.0,
+            cost: 105.5,
+            monthlyBudget: 2800,
+            carbonFootprint: 180,
+          },
+          iot: {
+            sensors: 35,
+            active: 33,
+            offline: 2,
+            lastUpdate: "25s",
+            dataPoints: "950,100",
+          },
+          systems: {
+            hvac: { status: "online", efficiency: 85, alert: false },
+            lighting: { status: "online", efficiency: 88, alert: false },
+            security: { status: "online", efficiency: 100, alert: false },
+            network: { status: "warning", efficiency: 92, alert: true },
+            waterSystem: { status: "online", efficiency: 85, alert: false },
+          },
+        },
+        criticalAlerts: [
+          {
+            id: 1,
+            type: "network",
+            title: "Sieťové pripojenie nestabilné",
+            description: "Niektoré IoT senzory vykazujú výpadky spojenia.",
+            severity: "medium",
+            icon: <Wifi className="h-4 w-4" />,
+            time: "pred 15 min",
+            action: "Diagnostikovať",
+          },
+        ],
+        keyAreas: [
+          {
+            id: "entrance",
+            name: "Hlavný Vchod",
+            description: "Reprezentatívny vstup",
+            icon: <MapPin className="h-5 w-5" />,
+            temperature: 21.8,
+            occupancy: {
+              current: 22,
+              capacity: 35,
+              percentage: 63,
+              status: "busy",
+            },
+            airQuality: 480,
+            status: "optimal",
+            alerts: [],
+            services: ["Informácie"],
+            lastUpdate: "20s",
+            energyUsage: 5.1,
+          },
+          {
+            id: "client",
+            name: "Veľká sála",
+            description: "Podujatia a zasadnutia",
+            icon: <Users className="h-5 w-5" />,
+            temperature: 21.6,
+            occupancy: {
+              current: 30,
+              capacity: 40,
+              percentage: 75,
+              status: "optimal",
+            },
+            airQuality: 560,
+            status: "warning",
+            alerts: [],
+            services: ["Zasadnutia", "Podujatia"],
+            lastUpdate: "50s",
+            energyUsage: 8.2,
+          },
+        ],
+      };
+    case "petrzalka":
+      return {
+        expenseData: {
+          today: {
+            current: 75.8,
+            currency: "€",
+            description: "Moderná budova, dobrá efektivita",
+            breakdown: {
+              heating: 35.0,
+              lighting: 15.5,
+              ventilation: 20.3,
+              other: 5.0,
+            },
+          },
+          savings: {
+            theoretical: 30.1,
+            percentage: 28.3,
+            comparedTo: "starý model",
+            description: "Vysoké úspory vďaka moderným technológiám",
+          },
+          prediction: {
+            nextMonth: {
+              amount: 1100,
+              confidence: 92,
+              weather: "mierna zima",
+              factors: [
+                {
+                  name: "Teplota",
+                  impact: "+10%",
+                  description: "Očakávaný pokles o 1-3°C",
+                },
+                {
+                  name: "Vlhkosť",
+                  impact: "+3%",
+                  description: "Stabilná vlhkosť 55-65%",
+                },
+                {
+                  name: "Slnečné dni",
+                  impact: "-8%",
+                  description: "Menej slnečných hodín",
+                },
+                { name: "Vietor", impact: "+2%", description: "Slabý vietor" },
+              ],
+              breakdown: {
+                heating: 1350,
+                lighting: 550,
+                ventilation: 350,
+                other: 120,
+              },
+            },
+          },
+        },
+        buildingData: {
+          buildingInfo: { ...buildingInfo, lastRenovation: "Nová 2015" },
+          temperature: {
+            average: 22.1,
+            target: 22.0,
+            range: { min: 20.5, max: 23.5 },
+            trend: 0.1,
+            rooms: { optimal: 25, warning: 2, critical: 0 },
+            energySaving: 22.5,
+          },
+          occupancy: {
+            current: 12,
+            capacity: 25,
+            percentage: 48,
+            peak: 15,
+            areas: {
+              entrance: {
+                current: 15,
+                capacity: 40,
+                percentage: 38,
+                status: "optimal",
+              },
+              clientCenter: {
+                current: 18,
+                capacity: 50,
+                percentage: 36,
+                status: "available",
+              },
+              meetingRoom: {
+                current: 8,
+                capacity: 60,
+                percentage: 13,
+                status: "available",
+              },
+              offices: {
+                current: 60,
+                capacity: 70,
+                percentage: 86,
+                status: "optimal",
+              },
+            },
+          },
+          airQuality: {
+            co2: 430,
+            status: "good",
+            humidity: 40,
+            temperature: 22.1,
+            ventilationEfficiency: 92,
+          },
+          energy: {
+            current: 30.5,
+            target: 38.0,
+            saved: 19.7,
+            efficiency: 95.1,
+            cost: 75.8,
+            monthlyBudget: 2100,
+            carbonFootprint: 130,
+          },
+          iot: {
+            sensors: 45,
+            active: 45,
+            offline: 0,
+            lastUpdate: "10s",
+            dataPoints: "1,150,300",
+          },
+          systems: {
+            hvac: { status: "online", efficiency: 94, alert: false },
+            lighting: { status: "online", efficiency: 96, alert: false },
+            security: { status: "online", efficiency: 100, alert: false },
+            network: { status: "online", efficiency: 99, alert: false },
+            waterSystem: { status: "online", efficiency: 93, alert: false },
+          },
+        },
+        criticalAlerts: [
+          {
+            id: 1,
+            type: "info",
+            title: "Systémy Optimálne",
+            description: "Všetky systémy bežia v optimálnom režime.",
+            severity: "low",
+            icon: <CheckCircle className="h-4 w-4" />,
+            time: "pred 1 min",
+            action: "OK",
+          },
+        ],
+        keyAreas: [
+          {
+            id: "entrance",
+            name: "Recepcia",
+            description: "Prvý kontakt",
+            icon: <MapPin className="h-5 w-5" />,
+            temperature: 22.2,
+            occupancy: {
+              current: 15,
+              capacity: 40,
+              percentage: 38,
+              status: "optimal",
+            },
+            airQuality: 410,
+            status: "optimal",
+            alerts: [],
+            services: ["Informácie"],
+            lastUpdate: "15s",
+            energyUsage: 3.5,
+          },
+          {
+            id: "client",
+            name: "Klientske centrum Petržalka",
+            description: "Moderné vybavenie",
+            icon: <Users className="h-5 w-5" />,
+            temperature: 22.0,
+            occupancy: {
+              current: 18,
+              capacity: 50,
+              percentage: 36,
+              status: "available",
+            },
+            airQuality: 435,
+            status: "optimal",
+            alerts: [],
+            services: ["Služby občanom"],
+            lastUpdate: "35s",
+            energyUsage: 5.9,
+          },
+        ],
+      };
+    case "ruzinov":
+    default:
+      return {
+        expenseData: {
+          today: {
+            current: 89.3,
+            currency: "€",
+            description: "Aktuálna spotreba za dnes",
+            breakdown: {
+              heating: 45.2,
+              lighting: 18.7,
+              ventilation: 15.4,
+              other: 10.0,
+            },
+          },
+          savings: {
+            theoretical: 24.7,
+            percentage: 21.6,
+            comparedTo: "starý model",
+            description: "Teoretické úšetrenie oproti minulému modelu",
+          },
+          prediction: {
+            nextMonth: {
+              amount: 1323,
+              confidence: 90,
+              weather: "chladnejšie počasie",
+              factors: [
+                {
+                  name: "Teplota",
+                  impact: "+15%",
+                  description: "Očakávaný pokles o 3-5°C",
+                },
+                {
+                  name: "Vlhkosť",
+                  impact: "+8%",
+                  description: "Zvýšená vlhkosť 65-75%",
+                },
+                {
+                  name: "Slnečné dni",
+                  impact: "-12%",
+                  description: "Menej slnečných hodín",
+                },
+                {
+                  name: "Vietor",
+                  impact: "+5%",
+                  description: "Zvýšená rýchlosť vetra",
+                },
+              ],
+              breakdown: {
+                heating: 1620,
+                lighting: 682,
+                ventilation: 398,
+                other: 147,
+              },
+            },
+          },
+        },
+        buildingData: {
+          buildingInfo: {
+            ...buildingInfo,
+            lastRenovation: "Potrebná modernizácia",
+          },
+          temperature: {
+            average: 21.8,
+            target: 22.0,
+            range: { min: 19.2, max: 24.8 },
+            trend: -0.3,
+            rooms: { optimal: 12, warning: 4, critical: 1 },
+            energySaving: 15.2,
+          },
+          occupancy: {
+            current: 16,
+            capacity: 22,
+            percentage: 71,
+            peak: 19,
+            areas: {
+              entrance: {
+                current: 18,
+                capacity: 30,
+                percentage: 60,
+                status: "busy",
+              },
+              clientCenter: {
+                current: 24,
+                capacity: 35,
+                percentage: 69,
+                status: "optimal",
+              },
+              meetingRoom: {
+                current: 12,
+                capacity: 50,
+                percentage: 24,
+                status: "available",
+              },
+              offices: {
+                current: 73,
+                capacity: 65,
+                percentage: 112,
+                status: "overcrowded",
+              },
+            },
+          },
+          airQuality: {
+            co2: 485,
+            status: "good",
+            humidity: 42,
+            temperature: 21.8,
+            ventilationEfficiency: 87,
+          },
+          energy: {
+            current: 34.7,
+            target: 42.0,
+            saved: 17.4,
+            efficiency: 91.2,
+            cost: 89.3,
+            monthlyBudget: 2450,
+            carbonFootprint: 156,
+          },
+          iot: {
+            sensors: 28,
+            active: 26,
+            offline: 2,
+            lastUpdate: "15s",
+            dataPoints: "847,293",
+          },
+          systems: {
+            hvac: { status: "online", efficiency: 89, alert: false },
+            lighting: { status: "online", efficiency: 90, alert: false },
+            security: { status: "online", efficiency: 100, alert: false },
+            network: { status: "online", efficiency: 96, alert: false },
+            waterSystem: { status: "warning", efficiency: 78, alert: true },
+          },
+        },
+        criticalAlerts: [
+          {
+            id: 1,
+            type: "warning",
+            title: "Prekročená kapacita kancelárií",
+            description:
+              "Kancelárie sú obsadené na 112% kapacity. Odporúčame redistribúciu zamestnancov.",
+            severity: "high",
+            icon: <Users className="h-4 w-4" />,
+            time: "pred 5 min",
+            action: "Zobraziť riešenia",
+          },
+          {
+            id: 2,
+            type: "energy",
+            title: "Energetická optimalizácia úspešná",
+            description:
+              "Automatické riadenie ušetrilo 17.4% energie oproti plánu.",
+            severity: "low",
+            icon: <Zap className="h-4 w-4" />,
+            time: "pred 2 hod",
+            action: "Detail",
+          },
+        ],
+        keyAreas: [
+          {
+            id: "entrance",
+            name: "Vstupné priestory",
+            description: "Hlavný vstup a čakáreň pre občanov",
+            icon: <MapPin className="h-5 w-5" />,
+            temperature: 22.1,
+            occupancy: {
+              current: 18,
+              capacity: 30,
+              percentage: 60,
+              status: "busy",
+            },
+            airQuality: 425,
+            status: "optimal",
+            alerts: [],
+            services: ["Informácie", "Čakáreň", "Bezpečnosť"],
+            lastUpdate: "30s",
+            energyUsage: 4.2,
+          },
+          {
+            id: "client",
+            name: "Klientske centrum",
+            description: "Matrika, ohlasovňa, sociálne služby",
+            icon: <Users className="h-5 w-5" />,
+            temperature: 21.9,
+            occupancy: {
+              current: 24,
+              capacity: 35,
+              percentage: 69,
+              status: "optimal",
+            },
+            airQuality: 465,
+            status: "optimal",
+            alerts: [],
+            services: ["Matrika", "Ohlasovňa", "Overovanie podpisov"],
+            lastUpdate: "45s",
+            energyUsage: 6.8,
+          },
+        ],
+      };
+  }
+};
 // ------------------------------------------
 
 const Dashboard = ({
@@ -119,69 +688,16 @@ const Dashboard = ({
   const [showExpenseDetails, setShowExpenseDetails] = useState(false);
   const [showShameTable, setShowShameTable] = useState(false);
 
-  // --- Added: State for Building Selection ---
+  // --- State for Building Selection ---
   const [selectedBuildingId, setSelectedBuildingId] = useState(buildings[0].id);
-  const selectedBuilding =
-    buildings.find((b) => b.id === selectedBuildingId) || buildings[0];
-  // ------------------------------------------
 
-  // Enhanced expense data (Kept static for this example)
-  const expenseData = {
-    today: {
-      current: 89.3,
-      currency: "€",
-      description: "Aktuálna spotreba za dnes",
-      breakdown: {
-        heating: 45.2,
-        lighting: 18.7,
-        ventilation: 15.4,
-        other: 10.0,
-      },
-    },
-    savings: {
-      theoretical: 24.7,
-      percentage: 21.6,
-      comparedTo: "starý model",
-      description: "Teoretické úšetrenie oproti minulému modelu",
-    },
-    prediction: {
-      nextMonth: {
-        amount: 1323,
-        confidence: 90,
-        weather: "chladnejšie počasie",
-        factors: [
-          {
-            name: "Teplota",
-            impact: "+15%",
-            description: "Očakávaný pokles o 3-5°C",
-          },
-          {
-            name: "Vlhkosť",
-            impact: "+8%",
-            description: "Zvýšená vlhkosť 65-75%",
-          },
-          {
-            name: "Slnečné dni",
-            impact: "-12%",
-            description: "Menej slnečných hodín",
-          },
-          {
-            name: "Vietor",
-            impact: "+5%",
-            description: "Zvýšená rýchlosť vetra",
-          },
-        ],
-        breakdown: {
-          heating: 1620,
-          lighting: 682,
-          ventilation: 398,
-          other: 147,
-        },
-      },
-    },
-  };
+  // --- Get Data for Selected Building ---
+  const { expenseData, buildingData, criticalAlerts, keyAreas } =
+    getBuildingSpecificData(selectedBuildingId);
+  const selectedBuilding = buildingData.buildingInfo;
+  // ------------------------------------
 
-  // Shame table data (Kept static)
+  // Shame table data (Kept static - could be made dynamic too)
   const shameData = {
     title: "🥔 Zemiak Hanby - Najhoršie miestnosti mesiaca",
     subtitle: "Miestnosti, ktoré by mali ísť na tréning efektívnosti",
@@ -254,7 +770,7 @@ const Dashboard = ({
     ],
   };
 
-  // Weather data (Kept static)
+  // Weather data (Kept static - could be made dynamic too)
   const weatherData = {
     current: { temperature: 8, condition: "cloudy", humidity: 68, wind: 12 },
     forecast: [
@@ -285,86 +801,7 @@ const Dashboard = ({
     ],
   };
 
-  // Enhanced real-time building data (Now uses selected building info)
-  // NOTE: Only buildingInfo is updated. Other data remains static for this simple example.
-  // In a real app, ALL this data should change based on selectedBuildingId.
-  const buildingData = {
-    buildingInfo: {
-      name: selectedBuilding.name, // <-- Updated
-      address: selectedBuilding.address, // <-- Updated
-      yearBuilt: selectedBuilding.yearBuilt, // <-- Updated
-      totalArea: "3,250 m²", // Static for now
-      floors: 4, // Static for now
-      lastRenovation: "Potrebná modernizácia", // Static for now
-    },
-    temperature: {
-      average: 21.8,
-      target: 22.0,
-      range: { min: 19.2, max: 24.8 },
-      trend: -0.3,
-      rooms: { optimal: 12, warning: 4, critical: 1 },
-      energySaving: 15.2,
-    },
-    occupancy: {
-      current: 16,
-      capacity: 22,
-      percentage: 71,
-      peak: 19,
-      areas: {
-        entrance: { current: 18, capacity: 30, percentage: 60, status: "busy" },
-        clientCenter: {
-          current: 24,
-          capacity: 35,
-          percentage: 69,
-          status: "optimal",
-        },
-        meetingRoom: {
-          current: 12,
-          capacity: 50,
-          percentage: 24,
-          status: "available",
-        },
-        offices: {
-          current: 73,
-          capacity: 65,
-          percentage: 112,
-          status: "overcrowded",
-        },
-      },
-    },
-    airQuality: {
-      co2: 485,
-      status: "good",
-      humidity: 42,
-      temperature: 21.8,
-      ventilationEfficiency: 87,
-    },
-    energy: {
-      current: 34.7,
-      target: 42.0,
-      saved: 17.4,
-      efficiency: 91.2,
-      cost: 89.3,
-      monthlyBudget: 2450,
-      carbonFootprint: 156,
-    },
-    iot: {
-      sensors: 28,
-      active: 26,
-      offline: 2,
-      lastUpdate: "15s",
-      dataPoints: "847,293",
-    },
-    systems: {
-      hvac: { status: "online", efficiency: 89, alert: false },
-      lighting: { status: "online", efficiency: 90, alert: false },
-      security: { status: "online", efficiency: 100, alert: false },
-      network: { status: "online", efficiency: 96, alert: false },
-      waterSystem: { status: "warning", efficiency: 78, alert: true },
-    },
-  };
-
-  // (Assuming implementations are the same as in the original code)
+  // Helper functions (Kept as is)
   const getWeatherIcon = (condition: string) => {
     switch (condition) {
       case "sunny":
@@ -382,13 +819,13 @@ const Dashboard = ({
   const getShameEmoji = (rank: number) => {
     switch (rank) {
       case 1:
-        return "🥔👑"; // King of waste
+        return "🥔👑";
       case 2:
-        return "🥔🔥"; // Hot potato
+        return "🥔🔥";
       case 3:
-        return "🥔😅"; // Embarrassed potato
+        return "🥔😅";
       default:
-        return "🥔"; // Regular potato
+        return "🥔";
     }
   };
   const getStatusColor = (status: string) => {
@@ -405,11 +842,30 @@ const Dashboard = ({
   };
   const getStatusBadge = (status: string) => {
     switch (status) {
+      case "busy":
+        return (
+          <Badge className="bg-orange-100 text-orange-800 border-orange-200 shadow-sm">
+            Rušno
+          </Badge>
+        );
       case "optimal":
         return (
           <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200 shadow-sm">
             <CheckCircle className="h-3 w-3 mr-1" />
             Optimálne
+          </Badge>
+        );
+      case "available":
+        return (
+          <Badge className="bg-blue-100 text-blue-800 border-blue-200 shadow-sm">
+            Voľné
+          </Badge>
+        );
+      case "overcrowded":
+        return (
+          <Badge className="bg-red-100 text-red-800 border-red-200 shadow-sm">
+            <AlertTriangle className="h-3 w-3 mr-1" />
+            Preplnené
           </Badge>
         );
       case "warning":
@@ -428,63 +884,6 @@ const Dashboard = ({
         );
     }
   };
-
-  // Critical alerts (Kept static)
-  const criticalAlerts = [
-    {
-      id: 1,
-      type: "warning",
-      title: "Prekročená kapacita kancelárií",
-      description:
-        "Kancelárie sú obsadené na 112% kapacity. Odporúčame redistribúciu zamestnancov.",
-      severity: "high",
-      icon: <Users className="h-4 w-4" />,
-      time: "pred 5 min",
-      action: "Zobraziť riešenia",
-    },
-    {
-      id: 2,
-      type: "energy",
-      title: "Energetická optimalizácia úspešná",
-      description: "Automatické riadenie ušetrilo 17.4% energie oproti plánu.",
-      severity: "low",
-      icon: <Zap className="h-4 w-4" />,
-      time: "pred 2 hod",
-      action: "Detail",
-    },
-  ];
-
-  // Key areas (Kept static)
-  const keyAreas = [
-    {
-      id: "entrance",
-      name: "Vstupné priestory",
-      description: "Hlavný vstup a čakáreň pre občanov",
-      icon: <MapPin className="h-5 w-5" />,
-      temperature: 22.1,
-      occupancy: buildingData.occupancy.areas.entrance,
-      airQuality: 425,
-      status: "optimal",
-      alerts: [],
-      services: ["Informácie", "Čakáreň", "Bezpečnosť"],
-      lastUpdate: "30s",
-      energyUsage: 4.2,
-    },
-    {
-      id: "client",
-      name: "Klientske centrum",
-      description: "Matrika, ohlasovňa, sociálne služby",
-      icon: <Users className="h-5 w-5" />,
-      temperature: 21.9,
-      occupancy: buildingData.occupancy.areas.clientCenter,
-      airQuality: 465,
-      status: "optimal",
-      alerts: [],
-      services: ["Matrika", "Ohlasovňa", "Overovanie podpisov"],
-      lastUpdate: "45s",
-      energyUsage: 6.8,
-    },
-  ];
 
   return (
     <div className="w-full h-full bg-gradient-to-br from-slate-50 via-blue-50/40 to-indigo-50/30 overflow-auto">
@@ -510,7 +909,7 @@ const Dashboard = ({
                       value={selectedBuildingId}
                       onValueChange={(value) => setSelectedBuildingId(value)} // Ensure state updates
                     >
-                      <SelectTrigger className="w-auto p-0 border-none shadow-none h-auto focus:ring-0 bg-transparent text-sm text-gray-600 font-medium">
+                      <SelectTrigger className="w-auto p-0 border-none shadow-none h-auto focus:ring-0 bg-transparent text-sm text-gray-600 font-medium hover:text-gray-900">
                         <SelectValue placeholder="Vyberte budovu..." />
                       </SelectTrigger>
                       <SelectContent>
@@ -525,11 +924,11 @@ const Dashboard = ({
                       variant="outline"
                       className="text-xs bg-blue-50 text-blue-700"
                     >
-                      Est. {buildingData.buildingInfo.yearBuilt}
+                      Est. {selectedBuilding.yearBuilt}
                     </Badge>
                   </div>
                   <p className="text-xs text-gray-500 mt-0.5">
-                    {buildingData.buildingInfo.address}
+                    {selectedBuilding.address}
                   </p>
                 </div>
                 {/* --- END MODIFIED HEADER SECTION --- */}
@@ -589,7 +988,7 @@ const Dashboard = ({
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-                {/* ... Dialog Content ... */}
+                {/* ... Dialog Content (Uses expenseData and weatherData) ... */}
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-2">
                     <LineChart className="h-5 w-5" />
@@ -632,16 +1031,17 @@ const Dashboard = ({
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold mb-4">
-                      Rozdelenie nákladov na december
+                      Rozdelenie nákladov (predikcia)
                     </h3>
                     <div className="space-y-3">
                       {Object.entries(
                         expenseData.prediction.nextMonth.breakdown
                       ).map(([category, amount]) => {
-                        const percentage = (
-                          (amount / expenseData.prediction.nextMonth.amount) *
-                          100
-                        ).toFixed(1);
+                        const total = expenseData.prediction.nextMonth.amount;
+                        const percentage =
+                          total > 0
+                            ? ((amount / total) * 100).toFixed(1)
+                            : "0.0";
                         return (
                           <div
                             key={category}
@@ -716,7 +1116,7 @@ const Dashboard = ({
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-6xl max-h-[80vh] overflow-y-auto">
-                {/* ... Dialog Content ... */}
+                {/* ... Dialog Content (Uses static shameData) ... */}
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-2 text-xl">
                     {shameData.title}
@@ -825,9 +1225,8 @@ const Dashboard = ({
         </div>
       </div>
 
-      {/* Main Content (Kept as is - Remember this data doesn't update yet) */}
+      {/* Main Content (Now uses dynamic data) */}
       <div className="px-8 py-6 space-y-8">
-        {/* ... All your Card sections ... */}
         {/* Enhanced Expense Management Section */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <Card className="bg-gradient-to-br from-blue-600 to-indigo-700 text-white shadow-2xl hover:shadow-3xl transition-all duration-500">
@@ -1109,9 +1508,17 @@ const Dashboard = ({
                   {" "}
                   <Wind className="h-6 w-6 text-white" />{" "}
                 </div>{" "}
-                <Badge className="bg-emerald-100 text-emerald-700">
+                <Badge
+                  className={
+                    buildingData.airQuality.status === "good"
+                      ? "bg-emerald-100 text-emerald-700"
+                      : "bg-amber-100 text-amber-700"
+                  }
+                >
                   {" "}
-                  Dobrá kvalita{" "}
+                  {buildingData.airQuality.status === "good"
+                    ? "Dobrá kvalita"
+                    : "Mierna kvalita"}{" "}
                 </Badge>{" "}
               </div>{" "}
               <div className="space-y-3">
@@ -1232,7 +1639,7 @@ const Dashboard = ({
                   key={area.id}
                   className={cn(
                     "p-6 rounded-2xl transition-all duration-500 hover:shadow-lg cursor-pointer border",
-                    getStatusColor(area.status)
+                    getStatusColor(area.occupancy.status) // Changed to use occupancy status for color
                   )}
                 >
                   {" "}
@@ -1261,7 +1668,7 @@ const Dashboard = ({
                         </div>{" "}
                       </div>{" "}
                     </div>{" "}
-                    {getStatusBadge(area.status)}{" "}
+                    {getStatusBadge(area.occupancy.status)}{" "}
                   </div>{" "}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {" "}
@@ -1307,6 +1714,42 @@ const Dashboard = ({
             </CardContent>{" "}
           </Card>
           <div className="space-y-6">
+            <Card className="bg-white/80 backdrop-blur-sm border-gray-200/60 shadow-xl">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-3">
+                  <AlertTriangle className="h-5 w-5 text-red-600" /> Kritické
+                  upozornenia
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {criticalAlerts.length > 0 ? (
+                  criticalAlerts.map((alert) => (
+                    <Alert
+                      key={alert.id}
+                      variant={
+                        alert.severity === "high" ? "destructive" : "default"
+                      }
+                      className={
+                        alert.severity === "high" ? "bg-red-50" : "bg-blue-50"
+                      }
+                    >
+                      {alert.icon}
+                      <AlertTitle>{alert.title}</AlertTitle>
+                      <AlertDescription>
+                        {alert.description} ({alert.time})
+                      </AlertDescription>
+                    </Alert>
+                  ))
+                ) : (
+                  <div className="flex items-center gap-3 p-4 bg-emerald-50 rounded-lg border border-emerald-200">
+                    <CheckCircle className="h-5 w-5 text-emerald-600" />
+                    <p className="text-sm text-emerald-800">
+                      Žiadne kritické upozornenia. Všetko je v poriadku!
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
             <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200 shadow-xl">
               {" "}
               <CardHeader>
@@ -1383,12 +1826,16 @@ const Dashboard = ({
                           "w-3 h-3 rounded-full",
                           system.status === "online"
                             ? "bg-emerald-500 animate-pulse"
+                            : system.status === "warning"
+                            ? "bg-amber-500"
                             : "bg-red-500"
                         )}
                       />{" "}
                       <div className="font-medium text-sm capitalize">
                         {" "}
-                        {key.replace(/([A-Z])/g, " $1").trim()}{" "}
+                        {key === "hvac"
+                          ? "HVAC"
+                          : key.replace(/([A-Z])/g, " $1").trim()}{" "}
                       </div>{" "}
                     </div>{" "}
                     <div className="text-sm font-medium">
