@@ -72,6 +72,7 @@ import {
 } from "@/components/ui/table";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+import { NotificationDropdown } from "@/components/NotificationDropdown";
 
 interface DashboardProps {
   onManageFloors: () => void;
@@ -499,17 +500,7 @@ const Dashboard = ({
                 <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
               </div>
 
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-2 border-gray-300 hover:bg-blue-50"
-              >
-                <Bell className="h-4 w-4" />
-                <span className="hidden sm:inline">Upozornenia</span>
-                <Badge className="bg-red-500 text-white text-xs px-1.5 py-0.5 ml-1">
-                  {criticalAlerts.filter((a) => a.severity === "high").length}
-                </Badge>
-              </Button>
+              <NotificationDropdown />
             </div>
           </div>
         </div>
