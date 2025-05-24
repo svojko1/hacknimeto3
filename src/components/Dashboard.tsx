@@ -914,7 +914,7 @@ const Dashboard = ({
                     <span className="text-lg opacity-90">€</span>
                   </div>
                   <p className="text-sm opacity-90 mt-1">
-                    Predikovaná spotreba na december
+                    Predikovaná spotreba na najbližší týždeň
                   </p>
                 </div>
                 <div className="space-y-1 text-xs">
